@@ -19,6 +19,8 @@ package io.openmessaging;
 
 import io.openmessaging.exception.OMSRuntimeException;
 
+import java.io.IOException;
+
 /**
  * A {@code Producer} is a simple object used to send messages on behalf
  * of a {@code MessagingAccessPoint}. An instance of {@code Producer} is
@@ -61,7 +63,7 @@ public interface Producer extends MessageFactory, ServiceLifecycle {
      * @param message a message will be sent
      * @throws OMSRuntimeException if the {@code Producer} fails to send the message due to some internal error.
      */
-    void send(final Message message);
+    void send(final Message message) throws IOException;
 
     /**
      * Sends a message to the specified destination synchronously, using the specified properties, the destination

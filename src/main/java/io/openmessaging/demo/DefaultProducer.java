@@ -8,6 +8,8 @@ import io.openmessaging.MessageHeader;
 import io.openmessaging.Producer;
 import io.openmessaging.Promise;
 
+import java.io.IOException;
+
 public class DefaultProducer  implements Producer {
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = MessageStore.getInstance();
@@ -39,7 +41,7 @@ public class DefaultProducer  implements Producer {
         return properties;
     }
 
-    @Override public void send(Message message) {
+    @Override public void send(Message message) throws IOException {
         if (message == null) throw new ClientOMSException("Message should not be null");
         String topic = message.headers().getString(MessageHeader.TOPIC);
         String queue = message.headers().getString(MessageHeader.QUEUE);
