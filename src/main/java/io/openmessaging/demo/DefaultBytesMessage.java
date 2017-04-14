@@ -5,6 +5,7 @@ import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class DefaultBytesMessage implements BytesMessage, Serializable {
 
@@ -74,6 +75,16 @@ public class DefaultBytesMessage implements BytesMessage, Serializable {
         if (properties == null) properties = new DefaultKeyValue();
         properties.put(key, value);
         return this;
+    }
+
+    @Override
+    public int hashCode() {
+        return new String(body).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return Arrays.equals(this.body,((DefaultBytesMessage)obj).getBody());
     }
 
     @Override
