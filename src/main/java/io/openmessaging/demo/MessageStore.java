@@ -32,7 +32,7 @@ public class MessageStore {
     }
 
     private void saveMessageToFile(String bucket,ArrayList<Message> bucketList) throws IOException {
-        String filename = filePath + bucket + (bucketCountsMap.get(bucket)/500-1) + ".message";
+        String filename = filePath + bucket + (bucketCountsMap.get(bucket)/SIZE-1) + ".message";
         FileOutputStream fileOutputStream = new FileOutputStream(filename);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
         System.out.println("Saving to " + filename + "...");
@@ -42,7 +42,7 @@ public class MessageStore {
         }
     }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
+    public void putMessage(String bucket, Message message) throws IOException {
         if (!messagePutBuckets.containsKey(bucket)) {
             messagePutBuckets.put(bucket, new ArrayList<>(1024));
         }
@@ -50,7 +50,7 @@ public class MessageStore {
         bucketList.add(message);
         int count = bucketCountsMap.getOrDefault(bucket, 0);
         bucketCountsMap.put(bucket, ++count);
-        if (bucketList.size()>=500){
+        if (bucketList.size()>=SIZE){
             ArrayList<Message> oldMessageBucket = bucketList;
             messagePutBuckets.put(bucket,new ArrayList<>(1024));
             saveMessageToFile(bucket,oldMessageBucket);
@@ -100,8 +100,6 @@ public class MessageStore {
             }
         }
         Message message = bucketList.get(offset%SIZE);
-        DefaultBytesMessage defaultBytesMessage = (DefaultBytesMessage)message;
-        String str = new String(defaultBytesMessage.getBody());
         offsetMap.put(bucket, ++offset);
         return message;
     }
