@@ -10,6 +10,9 @@ import java.util.Map;
 /**
  * Message操作的类.
  * 单例模式，操作过程中就这一个MessageStore。
+ * 实现了两个功能：
+ *     1. 将一条消息发送出去（放到内存或者文件）
+ *     2. 将一条消息获取出来（从内存或者文件里拿到数据）
  */
 public class MessageStore {
 

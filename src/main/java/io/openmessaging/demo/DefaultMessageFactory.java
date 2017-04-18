@@ -12,6 +12,7 @@ import io.openmessaging.MessageHeader;
  * 功能：
  * 输入Topic类型或者Queue类型，byte[]类型的原始数据。
  * 将上面两部分包装成一个ByteMessage并返回。
+ * 简而言之：这个类的作用就是用来将各种原始信息构造成一个MQ可以用的Message对象。
  */
 public class DefaultMessageFactory implements MessageFactory {
 

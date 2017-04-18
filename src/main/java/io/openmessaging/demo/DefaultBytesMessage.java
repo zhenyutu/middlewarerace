@@ -12,7 +12,7 @@ import java.util.Arrays;
  * BytesMessage包含了消息本身的内容，以及消息的附加属性信息。
  * 其中包括三个成员：
  *     1. headers：KeyValue类型，key指的是topic或者queue，value指的是topic或者queue的名字。
- *     2. properties：
+ *     2. properties：KeyValue类型，用户自定义的各种属性信息。
  *     3. body：原始数据。
  *
  */

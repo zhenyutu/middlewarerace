@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 主角：PullConsumer的默认实现类。
+ */
 public class DefaultPullConsumer implements PullConsumer {
     private MessageStore messageStore = MessageStore.getInstance();
     private KeyValue properties;
