@@ -7,6 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 默认的KeyValue接口实现。
+ * 内部使用Map，是对Map的简单封装。
+ * 为什么不用Map呢？
+ * 1. 可读性，Map是一个广泛的意思，较为底层，再具体的场景下，不具备可读性。
+ * 2. 泛型操作，KeyValue表面上支持多种类型作为value。
+ */
 public class DefaultKeyValue implements KeyValue, Serializable {
 
     private final Map<String, Object> kvs = new HashMap<>();

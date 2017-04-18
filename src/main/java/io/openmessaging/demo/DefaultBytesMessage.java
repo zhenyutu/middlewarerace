@@ -7,6 +7,15 @@ import io.openmessaging.Message;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * 主角：BytesMessage接口的默认实现。
+ * BytesMessage包含了消息本身的内容，以及消息的附加属性信息。
+ * 其中包括三个成员：
+ *     1. headers：KeyValue类型，key指的是topic或者queue，value指的是topic或者queue的名字。
+ *     2. properties：
+ *     3. body：原始数据。
+ *
+ */
 public class DefaultBytesMessage implements BytesMessage, Serializable {
 
     private KeyValue headers = new DefaultKeyValue();

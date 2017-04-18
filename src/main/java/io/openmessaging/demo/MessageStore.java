@@ -7,12 +7,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Message操作的类.
+ * 单例模式，操作过程中就这一个MessageStore。
+ */
 public class MessageStore {
 
     private static final int SIZE = 500;
 
     private static final MessageStore INSTANCE = new MessageStore();
 
+
+    // TODO：是否加入线程安全保障
     public static MessageStore getInstance() {
         return INSTANCE;
     }

@@ -10,10 +10,12 @@ import io.openmessaging.Promise;
 
 import java.io.IOException;
 
+/**
+ * 主角：Producer接口的默认实现。
+ */
 public class DefaultProducer  implements Producer {
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = MessageStore.getInstance();
-
     private KeyValue properties;
 
     public DefaultProducer(KeyValue properties) {
