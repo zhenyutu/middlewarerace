@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class MessageStore {
 
-    private static final int SIZE = 500;
+    private static final int SIZE = 1000;
 
     private static final MessageStore INSTANCE = new MessageStore();
 
@@ -31,18 +31,25 @@ public class MessageStore {
         this.filePath = filePath;
     }
 
-    private void saveMessageToFile(String bucket,ArrayList<Message> bucketList) throws IOException {
-        String filename = filePath + bucket + (bucketCountsMap.get(bucket)/SIZE-1) + ".message";
-        FileOutputStream fileOutputStream = new FileOutputStream(filename);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        System.out.println("Saving to " + filename + "...");
-        for (int i=0;i<bucketList.size();i++){
-            DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
-            objectOutputStream.writeObject(message);
+    private synchronized void saveMessageToFile(String bucket,ArrayList<Message> bucketList){
+        int count = bucketCountsMap.get(bucket)/SIZE-1;
+        String filename = filePath + bucket + count + ".txt";
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(filename);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+            for (int i=0;i<bucketList.size();i++){
+                DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
+                objectOutputStream.writeObject(message);
+            }
+            System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+        }catch (IOException e){
+            e.printStackTrace();
         }
+
     }
 
-    public void putMessage(String bucket, Message message) throws IOException {
+    public synchronized void putMessage(String bucket, Message message) throws IOException {
         if (!messagePutBuckets.containsKey(bucket)) {
             messagePutBuckets.put(bucket, new ArrayList<>(1024));
         }
@@ -57,10 +64,10 @@ public class MessageStore {
         }
     }
 
-    private ArrayList<Message> pullMessageFromFile(String bucket,long offset){
+    private synchronized ArrayList<Message> pullMessageFromFile(String bucket,long offset){
         ArrayList<Message> bucketList = new ArrayList<>();
         int flag = (int)offset/SIZE;
-        File file = new File(filePath+"/"+bucket+flag+".message");
+        File file = new File(filePath+"/"+bucket+flag+".txt");
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -82,22 +89,28 @@ public class MessageStore {
             queueOffsets.put(queue, offsetMap);
         }
         int offset = offsetMap.getOrDefault(bucket, 0);
-        int count = bucketCountsMap.getOrDefault(bucket,0);
-        if (offset/SIZE == count/SIZE){
-            bucketList = messagePutBuckets.get(bucket);
+//        int count = bucketCountsMap.getOrDefault(bucket,0);
+//        if (offset/SIZE == count/SIZE){
+//            bucketList = messagePutBuckets.get(bucket);
+//        }else {
+//            bucketList = messagePullBuckets.get(bucket);
+//        }
+//        if (offset >= count) {
+//            return null;
+//        }
+//        if (offset%SIZE==0){
+//            if (offset/SIZE == count/SIZE){
+//                bucketList = messagePutBuckets.get(bucket);
+//            }else {
+//                bucketList = pullMessageFromFile(bucket,offset);
+//                messagePullBuckets.put(bucket,bucketList);
+//            }
+//        }
+        if (offset%SIZE==0) {
+            bucketList = pullMessageFromFile(bucket,offset);
+            messagePullBuckets.put(bucket,bucketList);
         }else {
             bucketList = messagePullBuckets.get(bucket);
-        }
-        if (offset >= count) {
-            return null;
-        }
-        if (offset%SIZE==0){
-            if (offset/SIZE == count/SIZE){
-                bucketList = messagePutBuckets.get(bucket);
-            }else {
-                bucketList = pullMessageFromFile(bucket,offset);
-                messagePullBuckets.put(bucket,bucketList);
-            }
         }
         Message message = bucketList.get(offset%SIZE);
         offsetMap.put(bucket, ++offset);

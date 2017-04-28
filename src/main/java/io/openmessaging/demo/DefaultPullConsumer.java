@@ -53,6 +53,7 @@ public class DefaultPullConsumer implements PullConsumer {
         int checkNum = 0;
         while (++checkNum <= bucketList.size()) {
             String bucket = bucketList.get((++lastIndex) % (bucketList.size()));
+            messageStore.setFilePath(properties.getString("STORE_PATH"));
             Message message = messageStore.pullMessage(queue, bucket);
             if (message != null) {
                 return message;
@@ -71,7 +72,8 @@ public class DefaultPullConsumer implements PullConsumer {
         }
         queue = queueName;
         buckets.add(queueName);
-        buckets.addAll(topics);
+        if (topics!=null)
+            buckets.addAll(topics);
         bucketList.clear();
         bucketList.addAll(buckets);
     }
