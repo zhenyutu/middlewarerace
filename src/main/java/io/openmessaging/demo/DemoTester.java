@@ -60,8 +60,11 @@ public class DemoTester {
             int queue1Offset = 0, topic1Offset = 0;
 
             long startConsumer = System.currentTimeMillis();
-            while (true) {
-                Message message = consumer1.pullNoWait();
+
+            int count = 0;
+            while (count<1000) {
+                Message message = consumer1.poll();
+                count++;
                 if (message == null) {
                     //拉取为null则认为消息已经拉取完毕
                     break;
@@ -94,8 +97,12 @@ public class DemoTester {
             int queue2Offset = 0, topic1Offset = 0, topic2Offset = 0;
 
             long startConsumer = System.currentTimeMillis();
-            while (true) {
-                Message message = consumer2.pullNoWait();
+
+            int count = 0;
+
+            while (count < 1000) {
+                Message message = consumer2.poll();
+                count++;
                 if (message == null) {
                     //拉取为null则认为消息已经拉取完毕
                     break;

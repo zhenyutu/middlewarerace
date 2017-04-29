@@ -58,7 +58,7 @@ public class MessageStore {
 
     }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
+    public synchronized void putMessage(String bucket, Message message) {
         if (!messagePutBuckets.containsKey(bucket)) {
             messagePutBuckets.put(bucket, new ArrayList<>(1024));
         }

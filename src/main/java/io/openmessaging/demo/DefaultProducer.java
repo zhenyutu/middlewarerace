@@ -1,12 +1,6 @@
 package io.openmessaging.demo;
 
-import io.openmessaging.BytesMessage;
-import io.openmessaging.KeyValue;
-import io.openmessaging.Message;
-import io.openmessaging.MessageFactory;
-import io.openmessaging.MessageHeader;
-import io.openmessaging.Producer;
-import io.openmessaging.Promise;
+import io.openmessaging.*;
 
 import java.io.IOException;
 
@@ -70,7 +64,7 @@ public class DefaultProducer  implements Producer {
      * @param message a message will be sent
      * @throws IOException
      */
-    @Override public void send(Message message) throws IOException {
+    @Override public void send(Message message) {
         if (message == null) throw new ClientOMSException("Message should not be null");
         String topic = message.headers().getString(MessageHeader.TOPIC);
         String queue = message.headers().getString(MessageHeader.QUEUE);
@@ -124,6 +118,14 @@ public class DefaultProducer  implements Producer {
      * @param properties the specified properties
      */
     @Override public void sendOneway(Message message, KeyValue properties) {
+        throw new UnsupportedOperationException("Unsupported");
+    }
+
+    @Override public BatchToPartition createBatchToPartition(String partitionName) {
+        throw new UnsupportedOperationException("Unsupported");
+    }
+
+    @Override public BatchToPartition createBatchToPartition(String partitionName, KeyValue properties) {
         throw new UnsupportedOperationException("Unsupported");
     }
 }

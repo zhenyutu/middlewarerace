@@ -19,7 +19,7 @@ public class ConsumeThread extends Thread{
 //        System.out.println("thread"+Thread.currentThread().getName()+" is consuming messages...");
 //        messageQueue.consumeMessage();
         for (int i=0;i<1000;i++){
-            DefaultBytesMessage message = (DefaultBytesMessage) pullConsumer.pullNoWait();
+            DefaultBytesMessage message = (DefaultBytesMessage) pullConsumer.poll();
             System.out.println(Thread.currentThread().getName()+"-"+new String(message.getBody()));
         }
     }

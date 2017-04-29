@@ -30,7 +30,7 @@ public class MessageQueue {
 
     public void consumeMessage(){
         for (int i=0;i<1000;i++){
-            DefaultBytesMessage message = (DefaultBytesMessage) pullConsumer.pullNoWait();
+            DefaultBytesMessage message = (DefaultBytesMessage) pullConsumer.poll();
             System.out.println(Thread.currentThread().getName()+"-"+new String(message.getBody()));
         }
     }

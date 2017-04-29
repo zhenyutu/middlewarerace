@@ -31,24 +31,8 @@ public class DefaultPullConsumer implements PullConsumer {
         return properties;
     }
 
-    @Override public Message pull() {
 
-        throw new UnsupportedOperationException("Unsupported");
-    }
-
-    @Override public Message pull(KeyValue properties) {
-        throw new UnsupportedOperationException("Unsupported");
-    }
-
-    @Override public Message pull(long timeout, TimeUnit unit) {
-        throw new UnsupportedOperationException("Unsupported");
-    }
-
-    @Override public Message pull(long timeout, TimeUnit unit, KeyValue properties) {
-        throw new UnsupportedOperationException("Unsupported");
-    }
-
-    @Override public synchronized Message pullNoWait() {
+    @Override public synchronized Message poll() {
         if (buckets.size() == 0 || queue == null) {
             return null;
         }
@@ -65,7 +49,15 @@ public class DefaultPullConsumer implements PullConsumer {
         return null;
     }
 
-    @Override public Message pullNoWait(KeyValue properties) {
+    @Override public Message poll(KeyValue properties) {
+        throw new UnsupportedOperationException("Unsupported");
+    }
+
+    @Override public void ack(String messageId) {
+        throw new UnsupportedOperationException("Unsupported");
+    }
+
+    @Override public void ack(String messageId, KeyValue properties) {
         throw new UnsupportedOperationException("Unsupported");
     }
 
@@ -80,13 +72,4 @@ public class DefaultPullConsumer implements PullConsumer {
         bucketList.clear();
         bucketList.addAll(buckets);
     }
-
-    @Override public void start() {
-
-    }
-
-    @Override public void shutdown() {
-
-    }
-
 }

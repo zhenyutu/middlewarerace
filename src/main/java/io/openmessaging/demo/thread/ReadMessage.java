@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class ReadMessage {
     public static void main(String[] args) {
         ArrayList<Message> list = new ArrayList<>();
-        File file = new File("/home/tuzhenyu/tmp/test/queue10.txt");
+        File file = new File("/home/tuzhenyu/tmp/test/QUEUE_10.txt");
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
