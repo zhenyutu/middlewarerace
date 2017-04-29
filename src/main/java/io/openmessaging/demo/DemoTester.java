@@ -18,7 +18,7 @@ public class DemoTester {
     public static void main(String[] args) throws IOException {
         KeyValue properties = new DefaultKeyValue();
 //        properties.put("STORE_PATH", "/home/admin/test"); //实际测试时利用 STORE_PATH 传入存储路径
-        properties.put("STORE_PATH", "/home/tuzhenyu/tmp/test/"); //实际测试时利用 STORE_PATH 传入存储路径
+        properties.put("STORE_PATH", "/home/tuzhenyu/tmp/race2/"); //实际测试时利用 STORE_PATH 传入存储路径
 
         //这个测试程序的测试逻辑与实际评测相似，但注意这里是单线程的，实际测试时会是多线程的，并且发送完之后会Kill进程，再起消费逻辑
 
@@ -61,10 +61,10 @@ public class DemoTester {
 
             long startConsumer = System.currentTimeMillis();
 
-            int count = 0;
-            while (count<1000) {
+//            int count = 0;
+            while (true) {
                 Message message = consumer1.poll();
-                count++;
+//                count++;
                 if (message == null) {
                     //拉取为null则认为消息已经拉取完毕
                     break;
@@ -98,11 +98,11 @@ public class DemoTester {
 
             long startConsumer = System.currentTimeMillis();
 
-            int count = 0;
+//            int count = 0;
 
-            while (count < 1000) {
+            while (true) {
                 Message message = consumer2.poll();
-                count++;
+//                count++;
                 if (message == null) {
                     //拉取为null则认为消息已经拉取完毕
                     break;

@@ -77,6 +77,8 @@ public class MessageStore {
         ArrayList<Message> bucketList = new ArrayList<>();
         int flag = (int)offset/SIZE;
         File file = new File(filePath+"/"+bucket+flag+".txt");
+        if (!file.exists())
+            return null;
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -121,8 +123,11 @@ public class MessageStore {
         }else {
             bucketList = messagePullBuckets.get(bucket);
         }
-        Message message = bucketList.get(offset%SIZE);
-        offsetMap.put(bucket, ++offset);
+        Message message = null;
+        if (bucketList!=null){
+            message= bucketList.get(offset%SIZE);
+            offsetMap.put(bucket, ++offset);
+        }
         return message;
     }
 }
