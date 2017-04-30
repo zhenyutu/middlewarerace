@@ -5,7 +5,10 @@ import io.openmessaging.demo.DefaultBytesMessage;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 /**
@@ -15,16 +18,34 @@ import java.util.ArrayList;
 public class ReadMessage {
     public static void main(String[] args) {
         ArrayList<Message> list = new ArrayList<>();
-        File file = new File("/home/tuzhenyu/tmp/test/QUEUE_10.txt");
+        File file = new File("/home/tuzhenyu/tmp/race2/QUEUE10.txt");
+//        try {
+//            FileInputStream fileInputStream = new FileInputStream(file);
+//            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+//            for (int i=0;i<1000;i++){
+//                list.add((Message) objectInputStream.readObject());
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+
         try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            FileInputStream in = new FileInputStream(file);
+            FileChannel fc = in.getChannel();
+            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             for (int i=0;i<1000;i++){
-                list.add((Message) objectInputStream.readObject());
+                byte[] headerProperties = new byte[buffer.getInt()];
+                buffer.get(headerProperties);
+                System.out.println(new String(headerProperties));
+                byte[] body = new byte[buffer.getInt()];
+                buffer.get(body);
+                System.out.println(new String(body));
+
             }
-        }catch (Exception e){
+        }catch (IOException e){
             e.printStackTrace();
         }
+
 
         for (int i=0;i<list.size();i++){
             DefaultBytesMessage message = (DefaultBytesMessage) list.get(i);

@@ -1,8 +1,12 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.Message;
+import io.openmessaging.MessageHeader;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,28 +38,56 @@ public class MessageStore {
 
     private String filePath;
 
+    private static final int STORE_SIZE = 200000;
+    ByteBuffer byteBufferMessage = ByteBuffer.allocate(STORE_SIZE);
+
     private Map<String, Integer> bucketCountsMap = new HashMap<>();
 
     public void setFilePath(String filePath){
         this.filePath = filePath;
     }
 
-    private synchronized void saveMessageToFile(String bucket,ArrayList<Message> bucketList){
-        int count = bucketCountsMap.get(bucket)/SIZE-1;
-        String filename = filePath + bucket + count + ".txt";
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(filename);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
-            for (int i=0;i<bucketList.size();i++){
-                DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
-                objectOutputStream.writeObject(message);
+    private void saveMessageToBuffer(DefaultBytesMessage message){
+        StringBuffer str = new StringBuffer();
+        for (String header : message.headers().keySet()){
+            str.append(header+" ");
+            str.append(message.headers().getString(header)+" ");
+        }
+        str.append(",");
+        if (message.properties()!=null){
+            for (String properties : message.properties().keySet()){
+                str.append(properties+" ");
+                str.append(message.properties().getString(properties)+" ");
             }
-            System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
-        }catch (IOException e){
-            e.printStackTrace();
         }
 
+        byte[] headerProperties = str.toString().getBytes();
+        byteBufferMessage.putInt(headerProperties.length);
+        byteBufferMessage.put(headerProperties);
+        byteBufferMessage.putInt(message.getBody().length);
+        byteBufferMessage.put(message.getBody());
+    }
+
+    private void saveMessageToFile(String bucket,ArrayList<Message> bucketList){
+        int count = bucketCountsMap.get(bucket)/SIZE-1;
+        String filename = filePath + bucket + count + ".txt";
+        for (int i=0;i<bucketList.size();i++){
+            DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
+            saveMessageToBuffer(message);
+        }
+        System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+        try {
+            File f = new File(filename);
+            FileChannel out = new FileOutputStream(f,true).getChannel();
+            byteBufferMessage.flip();
+            out.write(byteBufferMessage);
+            byteBufferMessage.clear();
+            out.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+        }
     }
 
     public synchronized void putMessage(String bucket, Message message) {
@@ -80,10 +112,27 @@ public class MessageStore {
         if (!file.exists())
             return null;
         try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            FileInputStream in = new FileInputStream(file);
+            FileChannel fc = in.getChannel();
+            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             for (int i=0;i<SIZE;i++){
-                bucketList.add((Message) objectInputStream.readObject());
+                byte[] headerProperties = new byte[buffer.getInt()];
+                buffer.get(headerProperties);
+                byte[] body = new byte[buffer.getInt()];
+                buffer.get(body);
+                DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
+                String[] str = new String(headerProperties).split(",");
+                String[] header = str[0].split(" ");
+                for (int j=0;j<header.length;j=j+2){
+                    defaultBytesMessage.putHeaders(header[j].split(" ")[0],header[j+1].split(" ")[0]);
+                }
+                if (str.length>1){
+                    String[] properties = str[1].split(" ");
+                    for (int j=0;j<header.length;j=j+2){
+                        defaultBytesMessage.putProperties(properties[j].split(" ")[0],properties[j+1].split(" ")[0]);
+                    }
+                }
+                bucketList.add(defaultBytesMessage);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -114,26 +163,26 @@ public class MessageStore {
         return message;
     }
 
-    private void saveMissMessageToFile(){
-        for (String bucket:messagePutBuckets.keySet()){
-            ArrayList<Message> bucketList = messagePutBuckets.get(bucket);
-            if (bucketList.size()!=0){
-                int count = bucketCountsMap.get(bucket)/SIZE;
-                String filename = filePath + bucket + count + ".txt";
-                try {
-                    FileOutputStream fileOutputStream = new FileOutputStream(filename);
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
-                    for (int i=0;i<bucketList.size();i++){
-                        DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
-                        objectOutputStream.writeObject(message);
-                    }
-                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
-                }catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
+//    private void saveMissMessageToFile(){
+//        for (String bucket:messagePutBuckets.keySet()){
+//            ArrayList<Message> bucketList = messagePutBuckets.get(bucket);
+//            if (bucketList.size()!=0){
+//                int count = bucketCountsMap.get(bucket)/SIZE;
+//                String filename = filePath + bucket + count + ".txt";
+//                try {
+//                    FileOutputStream fileOutputStream = new FileOutputStream(filename);
+//                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+//                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+//                    for (int i=0;i<bucketList.size();i++){
+//                        DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
+//                        objectOutputStream.writeObject(message);
+//                    }
+//                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+//                }catch (IOException e){
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//
+//    }
 }

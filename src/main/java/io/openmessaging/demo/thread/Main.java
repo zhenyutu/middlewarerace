@@ -7,28 +7,25 @@ import io.openmessaging.demo.DefaultKeyValue;
 import io.openmessaging.demo.DefaultProducer;
 import io.openmessaging.demo.DefaultPullConsumer;
 
+import java.util.Arrays;
+
 /**
  * Created by tuzhenyu on 17-4-15.
  * @author tuzhenyu
  */
 public class Main {
     public static void main(String[] args) {
-        KeyValue properties = new DefaultKeyValue();
-        properties.put("STORE_PATH", "/home/tuzhenyu/tmp/test/");
-        Producer producer = new DefaultProducer(properties);
-        PullConsumer consumer1 = new DefaultPullConsumer(properties);
-        MessageQueue messageQueue = new MessageQueue(producer,consumer1);
-
-//        for (int i=0;i<12;i++){
-//            ProduceThread produce = new ProduceThread(messageQueue,""+i);
-//            produce.start();
-//        }
-
-        for (int i=0;i<2;i++){
-            PullConsumer consumer = new DefaultPullConsumer(properties);
-            consumer.attachQueue("queue"+i, null);
-            ConsumeThread consume = new ConsumeThread(consumer,""+i);
-            consume.start();
+        String string = "Queue QUEUE1 Queue QUEUE1 ,";
+        String[] str = string.split(",");
+        String[] header = str[0].split(" ");
+        for (int i=0;i<header.length;i=i+2){
+            System.out.println((header[i].split(" ")[0]+"-"+header[i+1].split(" ")[0]));
+        }
+        if (str.length>1){
+            String[] properties = str[1].split(" ");
+            for (int j=0;j<properties.length/2;j++){
+                System.out.println(properties[j].split(" ")[0]+"-"+properties[j+1].split(" ")[0]);
+            }
         }
     }
 }
