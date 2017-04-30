@@ -100,23 +100,6 @@ public class MessageStore {
             queueOffsets.put(queue, offsetMap);
         }
         int offset = offsetMap.getOrDefault(bucket, 0);
-//        int count = bucketCountsMap.getOrDefault(bucket,0);
-//        if (offset/SIZE == count/SIZE){
-//            bucketList = messagePutBuckets.get(bucket);
-//        }else {
-//            bucketList = messagePullBuckets.get(bucket);
-//        }
-//        if (offset >= count) {
-//            return null;
-//        }
-//        if (offset%SIZE==0){
-//            if (offset/SIZE == count/SIZE){
-//                bucketList = messagePutBuckets.get(bucket);
-//            }else {
-//                bucketList = pullMessageFromFile(bucket,offset);
-//                messagePullBuckets.put(bucket,bucketList);
-//            }
-//        }
         if (offset%SIZE==0) {
             bucketList = pullMessageFromFile(bucket,offset);
             messagePullBuckets.put(bucket,bucketList);
@@ -129,5 +112,28 @@ public class MessageStore {
             offsetMap.put(bucket, ++offset);
         }
         return message;
+    }
+
+    private void saveMissMessageToFile(){
+        for (String bucket:messagePutBuckets.keySet()){
+            ArrayList<Message> bucketList = messagePutBuckets.get(bucket);
+            if (bucketList.size()!=0){
+                int count = bucketCountsMap.get(bucket)/SIZE;
+                String filename = filePath + bucket + count + ".txt";
+                try {
+                    FileOutputStream fileOutputStream = new FileOutputStream(filename);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+                    for (int i=0;i<bucketList.size();i++){
+                        DefaultBytesMessage message = (DefaultBytesMessage) bucketList.get(i);
+                        objectOutputStream.writeObject(message);
+                    }
+                    System.out.println("Saving to " + filename + "..."+System.currentTimeMillis());
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 }
