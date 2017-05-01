@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by tuzhenyu on 17-4-28.
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 public class ReadMessage {
     public static void main(String[] args) {
         ArrayList<Message> list = new ArrayList<>();
-        File file = new File("/home/tuzhenyu/tmp/race2/QUEUE10.txt");
+        File file = new File("/home/tuzhenyu/tmp/race2/QUEUE11.txt");
 //        try {
 //            FileInputStream fileInputStream = new FileInputStream(file);
 //            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -33,9 +34,11 @@ public class ReadMessage {
             FileInputStream in = new FileInputStream(file);
             FileChannel fc = in.getChannel();
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-            for (int i=0;i<1000;i++){
+            while (true){
                 byte[] headerProperties = new byte[buffer.getInt()];
                 buffer.get(headerProperties);
+                if (headerProperties.length==0)
+                    break;
                 System.out.println(new String(headerProperties));
                 byte[] body = new byte[buffer.getInt()];
                 buffer.get(body);
