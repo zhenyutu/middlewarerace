@@ -1,13 +1,14 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.Message;
-import io.openmessaging.MessageHeader;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ import java.util.Map;
  */
 public class MessageStore {
 
-    private static final int SIZE = 1000;
+    private static final int SIZE = 100000;
 
     private static final MessageStore INSTANCE = new MessageStore();
 
@@ -32,14 +33,11 @@ public class MessageStore {
 
     private Map<String, MappedByteBuffer> messagePutBuckets = new HashMap<>();
 
-    private Map<String, ArrayList<Message>> messagePullBuckets = new HashMap<>();
+    private Map<String, MappedByteBuffer> messagePullBuckets = new HashMap<>();
 
     private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
 
     private String filePath;
-
-    private static final int STORE_SIZE = 50000;
-//    ByteBuffer byteBufferMessage = ByteBuffer.allocate(STORE_SIZE);
 
     private Map<String, Integer> bucketCountsMap = new HashMap<>();
 
@@ -68,13 +66,13 @@ public class MessageStore {
         byteBufferMessage.put(message.getBody());
     }
 
-    private MappedByteBuffer getMappedFile(String bucket){
+    private MappedByteBuffer getPutMappedFile(String bucket){
         MappedByteBuffer mappedByteBuffer = null;
         int count = bucketCountsMap.getOrDefault(bucket,0)/SIZE;
         String filename = filePath + bucket + count + ".txt";
         try {
              mappedByteBuffer = new RandomAccessFile(filename, "rw")
-                    .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, STORE_SIZE);
+                    .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE*50);
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -84,19 +82,19 @@ public class MessageStore {
 
     public synchronized void putMessage(String bucket, Message message) {
         if (!messagePutBuckets.containsKey(bucket)) {
-            messagePutBuckets.put(bucket, getMappedFile(bucket));
+            messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
         int count = bucketCountsMap.getOrDefault(bucket, 0);
         if (count%SIZE==0){
-            messagePutBuckets.put(bucket,getMappedFile(bucket));
+            messagePutBuckets.put(bucket,getPutMappedFile(bucket));
         }
         MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
         saveMessageToBuffer((DefaultBytesMessage)message,bucketBuffer);
         bucketCountsMap.put(bucket, ++count);
     }
 
-    private synchronized ArrayList<Message> pullMessageFromFile(String bucket,long offset){
-        ArrayList<Message> bucketList = new ArrayList<>();
+    private MappedByteBuffer getPullMappedFile(String bucket,long offset){
+        MappedByteBuffer mappedByteBuffer = null;
         int flag = (int)offset/SIZE;
         File file = new File(filePath+"/"+bucket+flag+".txt");
         if (!file.exists())
@@ -104,37 +102,38 @@ public class MessageStore {
         try {
             FileInputStream in = new FileInputStream(file);
             FileChannel fc = in.getChannel();
-            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-            while (true){
-                byte[] headerProperties = new byte[buffer.getInt()];
-                buffer.get(headerProperties);
-                if (headerProperties.length==0)
-                    break;
-                byte[] body = new byte[buffer.getInt()];
-                buffer.get(body);
-                DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
-                String[] str = new String(headerProperties).split(",");
-                String[] header = str[0].split(" ");
-                for (int j=0;j<header.length;j=j+2){
-                    defaultBytesMessage.putHeaders(header[j].split(" ")[0],header[j+1].split(" ")[0]);
-                }
-                if (str.length>1){
-                    String[] properties = str[1].split(" ");
-                    for (int j=0;j<header.length;j=j+2){
-                        defaultBytesMessage.putProperties(properties[j].split(" ")[0],properties[j+1].split(" ")[0]);
-                    }
-                }
-                bucketList.add(defaultBytesMessage);
-            }
+            mappedByteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
         }catch (Exception e){
             e.printStackTrace();
         }
+        return mappedByteBuffer;
+    }
 
-        return bucketList;
+    private synchronized Message pullMessageFromBuffer(ByteBuffer buffer){
+            byte[] headerProperties = new byte[buffer.getInt()];
+            buffer.get(headerProperties);
+            if (headerProperties.length==0)
+                return null;
+            byte[] body = new byte[buffer.getInt()];
+            buffer.get(body);
+            DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
+            String[] str = new String(headerProperties).split(",");
+            String[] header = str[0].split(" ");
+            for (int j=0;j<header.length;j=j+2){
+                defaultBytesMessage.putHeaders(header[j].split(" ")[0],header[j+1].split(" ")[0]);
+            }
+            if (str.length>1){
+                String[] properties = str[1].split(" ");
+                for (int j=0;j<header.length;j=j+2){
+                    defaultBytesMessage.putProperties(properties[j].split(" ")[0],properties[j+1].split(" ")[0]);
+                }
+            }
+
+            return defaultBytesMessage;
     }
 
     public synchronized Message pullMessage(String queue, String bucket) {
-        ArrayList<Message> bucketList;
+        MappedByteBuffer bucketbufer = null;
         HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
         if (offsetMap == null) {
             offsetMap = new HashMap<>();
@@ -142,16 +141,34 @@ public class MessageStore {
         }
         int offset = offsetMap.getOrDefault(bucket, 0);
         if (offset%SIZE==0) {
-            bucketList = pullMessageFromFile(bucket,offset);
-            messagePullBuckets.put(bucket,bucketList);
+            bucketbufer = messagePullBuckets.get(bucket);
+            if (bucketbufer!=null)
+                clean(bucketbufer);
+            bucketbufer = getPullMappedFile(bucket,offset);
+            messagePullBuckets.put(bucket,bucketbufer);
         }else {
-            bucketList = messagePullBuckets.get(bucket);
+            bucketbufer = messagePullBuckets.get(bucket);
         }
         Message message = null;
-        if (bucketList!=null&&(offset%SIZE<bucketList.size())){
-            message= bucketList.get(offset%SIZE);
+        if (bucketbufer!=null){
+            message= pullMessageFromBuffer(bucketbufer);
             offsetMap.put(bucket, ++offset);
         }
         return message;
+    }
+
+    public static void clean(final Object buffer) {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                try {
+                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner",new Class[0]);
+                    getCleanerMethod.setAccessible(true);
+                    sun.misc.Cleaner cleaner =(sun.misc.Cleaner)getCleanerMethod.invoke(buffer,new Object[0]);
+                    cleaner.clean();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                return null;}});
+
     }
 }
