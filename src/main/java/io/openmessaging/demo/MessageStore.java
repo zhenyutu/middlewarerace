@@ -41,6 +41,8 @@ public class MessageStore {
 
     private Map<String, Integer> bucketCountsMap = new HashMap<>();
 
+    private Map<String, Object> bucketObject = new HashMap<>();
+
     public void setFilePath(String filePath){
         this.filePath = filePath;
     }
@@ -81,6 +83,10 @@ public class MessageStore {
     }
 
     public synchronized void putMessage(String bucket, Message message) {
+//        if (!bucketObject.containsKey(bucket)) {
+//            bucketObject.put(bucket, new Object());
+//        }
+//        synchronized(bucketObject.get(bucket)){
         if (!messagePutBuckets.containsKey(bucket)) {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
@@ -91,9 +97,10 @@ public class MessageStore {
         MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
         saveMessageToBuffer((DefaultBytesMessage)message,bucketBuffer);
         bucketCountsMap.put(bucket, ++count);
+//        }
     }
 
-    private MappedByteBuffer getPullMappedFile(String bucket,long offset){
+    private synchronized MappedByteBuffer getPullMappedFile(String bucket,long offset){
         MappedByteBuffer mappedByteBuffer = null;
         int flag = (int)offset/SIZE;
         File file = new File(filePath+"/"+bucket+flag+".txt");
@@ -109,7 +116,7 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    private synchronized Message pullMessageFromBuffer(ByteBuffer buffer){
+    private Message pullMessageFromBuffer(ByteBuffer buffer){
             byte[] headerProperties = new byte[buffer.getInt()];
             buffer.get(headerProperties);
             if (headerProperties.length==0)
@@ -132,7 +139,7 @@ public class MessageStore {
             return defaultBytesMessage;
     }
 
-    public synchronized Message pullMessage(String queue, String bucket) {
+    public Message pullMessage(String queue, String bucket) {
         MappedByteBuffer bucketbufer = null;
         HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
         if (offsetMap == null) {
