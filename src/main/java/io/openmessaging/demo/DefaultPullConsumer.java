@@ -3,6 +3,9 @@ package io.openmessaging.demo;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 import io.openmessaging.PullConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -14,6 +17,9 @@ import java.util.concurrent.TimeUnit;
  * 主角：PullConsumer的默认实现类。
  */
 public class DefaultPullConsumer implements PullConsumer {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPullConsumer.class);
+
+
     private MessageStore messageStore = MessageStore.getInstance();
     private KeyValue properties;
     private String queue;
@@ -34,6 +40,7 @@ public class DefaultPullConsumer implements PullConsumer {
 
     @Override public synchronized Message poll() {
         if (buckets.size() == 0 || queue == null) {
+            logger.info("Null return");
             return null;
         }
         //use Round Robin
@@ -43,7 +50,10 @@ public class DefaultPullConsumer implements PullConsumer {
             messageStore.setFilePath(properties.getString("STORE_PATH"));
             Message message = messageStore.pullMessage(queue, bucket);
             if (message != null) {
+                logger.info("Message: " + message);
                 return message;
+            } else {
+                logger.warn("Message is null");
             }
         }
         return null;

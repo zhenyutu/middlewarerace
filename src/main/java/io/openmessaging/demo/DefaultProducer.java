@@ -1,6 +1,8 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -8,6 +10,8 @@ import java.io.IOException;
  * 主角：Producer接口的默认实现。
  */
 public class DefaultProducer  implements Producer {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultProducer.class);
+
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = MessageStore.getInstance();
     private KeyValue properties;
@@ -72,6 +76,7 @@ public class DefaultProducer  implements Producer {
             throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
         }
         messageStore.setFilePath(properties.getString("STORE_PATH"));
+        logger.info((topic != null ? "topic" : "queue") + " " + message);
         messageStore.putMessage(topic != null ? topic : queue, message);
     }
 
