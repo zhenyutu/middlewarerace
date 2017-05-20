@@ -21,7 +21,8 @@ import java.util.Map;
  */
 public class MessageStore {
 
-    private static final int SIZE = 100000;
+    private static final int SIZE = 500;
+    private static final int MSG_SIZE = 20;
 
     private static final MessageStore INSTANCE = new MessageStore();
 
@@ -76,7 +77,7 @@ public class MessageStore {
     private MappedByteBuffer expandMappedFile(String bucket, int position) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
-        int sizeNeed = (SIZE - bucketCountsMap.get(bucket)) / bucketCountsMap.get(bucket) * SIZE * 50;
+        int sizeNeed = (SIZE - bucketCountsMap.get(bucket)) / bucketCountsMap.get(bucket) * SIZE * MSG_SIZE;
         return new RandomAccessFile(filename, "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, position, sizeNeed);
     }
 
@@ -86,7 +87,7 @@ public class MessageStore {
         String filename = filePath + bucket + count + ".txt";
         try {
             mappedByteBuffer = new RandomAccessFile(filename, "rw")
-                    .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE * 50);
+                    .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE * MSG_SIZE);
         } catch (IOException e) {
             e.printStackTrace();
         }

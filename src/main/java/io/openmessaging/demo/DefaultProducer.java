@@ -64,7 +64,7 @@ public class DefaultProducer  implements Producer {
      * @param message a message will be sent
      * @throws IOException
      */
-    @Override public void send(Message message) {
+    @Override public void send(Message message) throws IOException {
         if (message == null) throw new ClientOMSException("Message should not be null");
         String topic = message.headers().getString(MessageHeader.TOPIC);
         String queue = message.headers().getString(MessageHeader.QUEUE);
