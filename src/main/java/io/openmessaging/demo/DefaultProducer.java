@@ -14,6 +14,7 @@ public class DefaultProducer  implements Producer {
 
     public DefaultProducer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setFilePath(properties.getString("STORE_PATH"));
     }
 
 
@@ -71,7 +72,6 @@ public class DefaultProducer  implements Producer {
         if ((topic == null && queue == null) || (topic != null && queue != null)) {
             throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
         }
-        messageStore.setFilePath(properties.getString("STORE_PATH"));
         messageStore.putMessage(topic != null ? topic : queue, message);
     }
 
