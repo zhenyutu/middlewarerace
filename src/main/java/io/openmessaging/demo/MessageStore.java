@@ -1,12 +1,12 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -23,7 +23,6 @@ import java.util.Map;
  * 2. 将一条消息获取出来（从内存或者文件里拿到数据）
  */
 public class MessageStore {
-    private static final Logger logger = LoggerFactory.getLogger(MessageStore.class);
 
     private static final int SIZE = 1000000;
     private static final int MSG_SIZE = 50;
@@ -72,32 +71,12 @@ public class MessageStore {
         if (msgLen > leftLength) {
             byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position(), msgLen);
             messagePutBuckets.put(bucket, (MappedByteBuffer) byteBufferMessage);
-//            logger.info("position: " + byteBufferMessage.position());
-//            logger.info("capacity: " + byteBufferMessage.capacity());
-//            logger.info("msgLen: " + msgLen);
-//            logger.info("leftLength: " + (byteBufferMessage.capacity() - byteBufferMessage.position()));
         }
 
-        try {
-            byteBufferMessage.putInt(headerProperties.length);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            byteBufferMessage.put(headerProperties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            byteBufferMessage.putInt(message.getBody().length);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            byteBufferMessage.put(message.getBody());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        byteBufferMessage.putInt(headerProperties.length);
+        byteBufferMessage.put(headerProperties);
+        byteBufferMessage.putInt(message.getBody().length);
+        byteBufferMessage.put(message.getBody());
     }
 
     private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
