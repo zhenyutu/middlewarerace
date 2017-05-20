@@ -77,7 +77,7 @@ public class MessageStore {
     private MappedByteBuffer expandMappedFile(String bucket, int position) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
-        int sizeNeed = (SIZE - bucketCountsMap.get(bucket)) / bucketCountsMap.get(bucket) * SIZE * MSG_SIZE;
+        int sizeNeed = (int) ((double)(SIZE - bucketCountsMap.get(bucket)) / (double)bucketCountsMap.get(bucket) * SIZE * MSG_SIZE);
         return new RandomAccessFile(filename, "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, position, sizeNeed);
     }
 
