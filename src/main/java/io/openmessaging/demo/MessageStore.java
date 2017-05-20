@@ -25,8 +25,8 @@ import java.util.Map;
 public class MessageStore {
     private static final Logger logger = LoggerFactory.getLogger(MessageStore.class);
 
-    private static final int SIZE = 500;
-    private static final int MSG_SIZE = 20;
+    private static final int SIZE = 1000000;
+    private static final int MSG_SIZE = 50;
 
     private static final MessageStore INSTANCE = new MessageStore();
 
