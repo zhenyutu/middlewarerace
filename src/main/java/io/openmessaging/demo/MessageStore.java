@@ -1,9 +1,12 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -20,6 +23,7 @@ import java.util.Map;
  * 2. 将一条消息获取出来（从内存或者文件里拿到数据）
  */
 public class MessageStore {
+    private static final Logger logger = LoggerFactory.getLogger(MessageStore.class);
 
     private static final int SIZE = 500;
     private static final int MSG_SIZE = 20;
@@ -66,18 +70,42 @@ public class MessageStore {
         int leftLength = byteBufferMessage.capacity() - byteBufferMessage.position();
         int msgLen = 4 + headerProperties.length + 4 + message.getBody().length;
         if (msgLen > leftLength) {
-            byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position());
+            byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position(), msgLen);
+            logger.info("position: " + byteBufferMessage.position());
+            logger.info("capacity: " + byteBufferMessage.capacity());
+            logger.info("msgLen: " + msgLen);
+            logger.info("leftLength: " + (byteBufferMessage.capacity() - byteBufferMessage.position()));
         }
-        byteBufferMessage.putInt(headerProperties.length);
-        byteBufferMessage.put(headerProperties);
-        byteBufferMessage.putInt(message.getBody().length);
-        byteBufferMessage.put(message.getBody());
+
+        try {
+            byteBufferMessage.putInt(headerProperties.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            byteBufferMessage.put(headerProperties);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            byteBufferMessage.putInt(message.getBody().length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            byteBufferMessage.put(message.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private MappedByteBuffer expandMappedFile(String bucket, int position) throws IOException {
+    private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
-        int sizeNeed = (int) ((double)(SIZE - bucketCountsMap.get(bucket)) / (double)bucketCountsMap.get(bucket) * SIZE * MSG_SIZE);
+        long sizeNeed = (long) (Math.ceil((SIZE - bucketCountsMap.get(bucket)) / bucketCountsMap.get(bucket)) * SIZE * MSG_SIZE);
+        if (sizeNeed < msgLen) {
+            sizeNeed = msgLen;
+        }
         return new RandomAccessFile(filename, "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, position, sizeNeed);
     }
 
