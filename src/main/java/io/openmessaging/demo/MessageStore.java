@@ -71,10 +71,11 @@ public class MessageStore {
         int msgLen = 4 + headerProperties.length + 4 + message.getBody().length;
         if (msgLen > leftLength) {
             byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position(), msgLen);
-            logger.info("position: " + byteBufferMessage.position());
-            logger.info("capacity: " + byteBufferMessage.capacity());
-            logger.info("msgLen: " + msgLen);
-            logger.info("leftLength: " + (byteBufferMessage.capacity() - byteBufferMessage.position()));
+            messagePutBuckets.put(bucket, (MappedByteBuffer) byteBufferMessage);
+//            logger.info("position: " + byteBufferMessage.position());
+//            logger.info("capacity: " + byteBufferMessage.capacity());
+//            logger.info("msgLen: " + msgLen);
+//            logger.info("leftLength: " + (byteBufferMessage.capacity() - byteBufferMessage.position()));
         }
 
         try {
@@ -102,7 +103,7 @@ public class MessageStore {
     private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
-        long sizeNeed = (long) (Math.ceil((SIZE - bucketCountsMap.get(bucket)) / bucketCountsMap.get(bucket)) * SIZE * MSG_SIZE);
+        long sizeNeed = SIZE * MSG_SIZE;
         if (sizeNeed < msgLen) {
             sizeNeed = msgLen;
         }
