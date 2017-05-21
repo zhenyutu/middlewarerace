@@ -130,7 +130,7 @@ public class MessageStore {
         File file = new File(filePath + "/" + bucket + flag + ".txt");
         if (!file.exists()){
             logger.info("file is not exit-"+bucket);
-            return null;
+//            return null;
         }
         try {
             FileInputStream in = new FileInputStream(file);
