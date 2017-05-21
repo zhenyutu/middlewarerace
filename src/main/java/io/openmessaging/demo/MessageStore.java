@@ -1,6 +1,8 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +25,7 @@ import java.util.Map;
  * 2. 将一条消息获取出来（从内存或者文件里拿到数据）
  */
 public class MessageStore {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPullConsumer.class);
 
     private static final int SIZE = 1000000;
     private static final int MSG_SIZE = 50;
@@ -125,8 +128,10 @@ public class MessageStore {
         MappedByteBuffer mappedByteBuffer = null;
         int flag = (int) offset / SIZE;
         File file = new File(filePath + "/" + bucket + flag + ".txt");
-        if (!file.exists())
+        if (!file.exists()){
+            logger.info("file is not exit-"+bucket);
             return null;
+        }
         try {
             FileInputStream in = new FileInputStream(file);
             FileChannel fc = in.getChannel();
@@ -181,6 +186,8 @@ public class MessageStore {
         if (bucketbufer != null) {
             message = pullMessageFromBuffer(bucketbufer);
             offsetMap.put(bucket, ++offset);
+        }else {
+            logger.info("BucketBuffer is null-"+bucket);
         }
         return message;
     }

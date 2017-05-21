@@ -41,7 +41,6 @@ public class DefaultPullConsumer implements PullConsumer {
 
     @Override public synchronized Message poll() {
         if (buckets.size() == 0 || queue == null) {
-            logger.info("Null return");
             return null;
         }
         //use Round Robin
@@ -50,10 +49,7 @@ public class DefaultPullConsumer implements PullConsumer {
             String bucket = bucketList.get((++lastIndex) % (bucketList.size()));
             Message message = messageStore.pullMessage(queue, bucket);
             if (message != null) {
-                logger.info("Message: " + message);
                 return message;
-            } else {
-                logger.warn("Message is null");
             }
         }
         return null;

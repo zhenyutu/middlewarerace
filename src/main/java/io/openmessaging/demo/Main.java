@@ -12,6 +12,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             FileInputStream in = new FileInputStream("/home/tuzhenyu/tmp/race2/QUEUE10.txt");
+//            FileInputStream in = new FileInputStream("/home/tuzhenyu/tmp/test/QUEUE_10.txt");
             FileChannel fc = in.getChannel();
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
 
