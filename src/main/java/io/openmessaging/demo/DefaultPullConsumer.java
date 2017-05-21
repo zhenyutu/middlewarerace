@@ -30,6 +30,7 @@ public class DefaultPullConsumer implements PullConsumer {
 
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setFilePath(properties.getString("STORE_PATH"));
     }
 
 
@@ -47,7 +48,6 @@ public class DefaultPullConsumer implements PullConsumer {
         int checkNum = 0;
         while (++checkNum <= bucketList.size()) {
             String bucket = bucketList.get((++lastIndex) % (bucketList.size()));
-            messageStore.setFilePath(properties.getString("STORE_PATH"));
             Message message = messageStore.pullMessage(queue, bucket);
             if (message != null) {
                 logger.info("Message: " + message);
