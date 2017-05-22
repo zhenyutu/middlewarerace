@@ -181,8 +181,16 @@ public class MessageStore {
                     bufferBuckets.get(bucket).put(offset%SIZE, tmp);
                     messagePullBuckets.get(queue).put(bucket, (MappedByteBuffer) tmp.duplicate());
                 }catch (Exception e){
-                    logger.info("bufferBuckets"+bufferBuckets.get(bucket).keySet().size());
-                    logger.info("bufferBuckets"+messagePullBuckets.get(bucket).keySet().size());
+                    if (bufferBuckets.get(bucket)==null)
+                        logger.info("bufferBuckets.get(bucket) is null");
+                    else
+                        logger.info("bufferBuckets.get(bucket) is not null");
+                    if (messagePullBuckets.get(queue)==null)
+                        logger.info("messagePullBuckets.get(queue) is null");
+                    else
+                        logger.info("messagePullBuckets.get(queue) is null");
+                    logger.info("bufferBuckets is "+bufferBuckets.get(bucket).keySet().size());
+                    logger.info("bufferBuckets is "+messagePullBuckets.get(bucket).keySet().size());
                 }
             }
             else {
