@@ -95,9 +95,12 @@ public class MessageStore {
     private MappedByteBuffer getPutMappedFile(String bucket) {
         MappedByteBuffer mappedByteBuffer = null;
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
-        String filename = filePath + bucket + count + ".txt";
+        File file = new File(filePath + bucket + count + ".txt");
         try {
-            mappedByteBuffer = new RandomAccessFile(filename, "rw")
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            mappedByteBuffer = new RandomAccessFile(file, "rw")
                     .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE * MSG_SIZE);
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,10 +118,10 @@ public class MessageStore {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
         int count = bucketCountsMap.getOrDefault(bucket, 0);
-        if (count!=0 && count % (SIZE/100) == 0){
-            logger.info("bytebuffer force -" +count+"-"+ bucket);
-            messagePutBuckets.get(bucket).force();
-        }
+//        if (count!=0 && count % (SIZE/100) == 0){
+//            logger.info("bytebuffer force -" +count+"-"+ bucket);
+//            messagePutBuckets.get(bucket).force();
+//        }
         if (count % SIZE == 0) {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
@@ -137,10 +140,9 @@ public class MessageStore {
 //            return null;
         }
         try {
-            FileInputStream in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
-            mappedByteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-        } catch (Exception e) {
+            RandomAccessFile raf = new RandomAccessFile(file,"r");
+            mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return mappedByteBuffer;
