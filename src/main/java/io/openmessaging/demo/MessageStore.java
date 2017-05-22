@@ -39,7 +39,9 @@ public class MessageStore {
 
     private Map<String, MappedByteBuffer> messagePutBuckets = new HashMap<>();
 
-    private Map<String, MappedByteBuffer> messagePullBuckets = new HashMap<>();
+    private Map<String, HashMap<Integer, MappedByteBuffer>> bufferBuckets = new HashMap<>();
+
+    private Map<String, HashMap<String, MappedByteBuffer>> messagePullBuckets = new HashMap<>();
 
     private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
 
@@ -53,7 +55,7 @@ public class MessageStore {
         this.filePath = filePath;
     }
 
-    private synchronized void saveMessageToBuffer(String bucket, DefaultBytesMessage message, ByteBuffer byteBufferMessage) throws IOException {
+    private void saveMessageToBuffer(String bucket, DefaultBytesMessage message, ByteBuffer byteBufferMessage) throws IOException {
 
         StringBuffer str = new StringBuffer();
         for (String header : message.headers().keySet()) {
@@ -82,7 +84,7 @@ public class MessageStore {
         byteBufferMessage.put(message.getBody());
     }
 
-    private synchronized MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
+    private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
         long sizeNeed = SIZE * MSG_SIZE;
@@ -92,7 +94,7 @@ public class MessageStore {
         return new RandomAccessFile(filename, "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, position, sizeNeed);
     }
 
-    private synchronized MappedByteBuffer getPutMappedFile(String bucket) {
+    private MappedByteBuffer getPutMappedFile(String bucket) {
         MappedByteBuffer mappedByteBuffer = null;
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         File file = new File(filePath + "/" + bucket + count + ".txt");
@@ -137,7 +139,7 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    private synchronized Message pullMessageFromBuffer(ByteBuffer buffer,String bucket,int offset) {
+    private Message pullMessageFromBuffer(ByteBuffer buffer) {
         byte[] headerProperties = new byte[buffer.getInt()];
         buffer.get(headerProperties);
         if (headerProperties.length == 0)
@@ -156,12 +158,11 @@ public class MessageStore {
                 defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
             }
         }
-//        logger.info(bucket+"-"+offset+"-"+new String(body)+"-"+new String(headerProperties));
-        logger.info(bucket+"-"+offset+"-"+new String(body));
+
         return defaultBytesMessage;
     }
 
-    public synchronized Message pullMessage(String queue, String bucket) {
+    public Message pullMessage(String queue, String bucket) {
         MappedByteBuffer bucketbufer = null;
         HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
         if (offsetMap == null) {
@@ -169,22 +170,34 @@ public class MessageStore {
             queueOffsets.put(queue, offsetMap);
         }
         int offset = offsetMap.getOrDefault(bucket, 0);
+
         if (offset % SIZE == 0) {
-            bucketbufer = messagePullBuckets.get(bucket);
+            messagePullBuckets.putIfAbsent(queue,new HashMap<>());
+            bucketbufer = messagePullBuckets.get(queue).get(bucket);
+
             if (bucketbufer != null)
                 clean(bucketbufer);
-            bucketbufer = getPullMappedFile(bucket, offset);
-            messagePullBuckets.put(bucket, bucketbufer);
-        } else {
-            bucketbufer = messagePullBuckets.get(bucket);
+            bufferBuckets.putIfAbsent(bucket,new HashMap<>());
+            if (bufferBuckets.get(bucket).get(offset%SIZE) == null){
+                MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
+                bufferBuckets.get(bucket).put(offset%SIZE, tmp);
+                messagePullBuckets.get(queue).put(bucket, (MappedByteBuffer) tmp.duplicate());
+            }
+            else {
+                MappedByteBuffer tmp  = (MappedByteBuffer)bufferBuckets.get(bucket).get(offset%SIZE).duplicate();
+                messagePullBuckets.get(queue).put(bucket,tmp);
+            }
         }
+        bucketbufer = messagePullBuckets.get(queue).get(bucket);
+
         Message message = null;
         if (bucketbufer != null) {
-            message = pullMessageFromBuffer(bucketbufer,bucket,offset);
+            message = pullMessageFromBuffer(bucketbufer);
             offsetMap.put(bucket, ++offset);
         }else {
             logger.info("BucketBuffer is null-"+bucket);
         }
+
         return message;
     }
 

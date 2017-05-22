@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by tuzhenyu on 17-5-20.
@@ -16,7 +18,6 @@ public class Main {
 ////            FileInputStream in = new FileInputStream("/home/tuzhenyu/tmp/test/QUEUE_10.txt");
 //            FileChannel fc = in.getChannel();
 //            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-//
 //            while (buffer.position()<buffer.capacity()){
 //                byte[] headerProperties = new byte[buffer.getInt()];
 //                buffer.get(headerProperties);
@@ -29,20 +30,28 @@ public class Main {
 //            e.printStackTrace();
 //        }
 
-        String headerProperties = "HEADER_KEY h2c2bd3ib4 91y evq5vue vmy 8nrevr6 q6z e6512ic zxx e7a9zag Topic TOPIC_48 ,hbk rop8gj9 PRO_OFFSET PRODUCER0_0 4lq 9saulza rxe pnhmtui ";
-        System.out.println(headerProperties.getBytes().length);
-        String[] str = headerProperties.split(",");
-        String[] header = str[0].split(" ");
-        System.out.println(Arrays.toString(header));
-        for (int j = 0; j < header.length; j = j + 2) {
-            System.out.println(header[j].split(" ")[0] + "-" + header[j + 1].split(" ")[0]);
-        }
-        if (str.length > 1) {
-            String[] properties = str[1].split(" ");
-            System.out.println(Arrays.toString(properties));
-            for (int j = 0; j < properties.length; j = j + 2) {
-                System.out.println(properties[j].split(" ")[0] + "-" + properties[j + 1].split(" ")[0]);
-            }
-        }
+//        String headerProperties = "HEADER_KEY h2c2bd3ib4 91y evq5vue vmy 8nrevr6 q6z e6512ic zxx e7a9zag Topic TOPIC_48 ,hbk rop8gj9 PRO_OFFSET PRODUCER0_0 4lq 9saulza rxe pnhmtui ";
+//        System.out.println(headerProperties.getBytes().length);
+//        String[] str = headerProperties.split(",");
+//        String[] header = str[0].split(" ");
+//        System.out.println(Arrays.toString(header));
+//        for (int j = 0; j < header.length; j = j + 2) {
+//            System.out.println(header[j].split(" ")[0] + "-" + header[j + 1].split(" ")[0]);
+//        }
+//        if (str.length > 1) {
+//            String[] properties = str[1].split(" ");
+//            System.out.println(Arrays.toString(properties));
+//            for (int j = 0; j < properties.length; j = j + 2) {
+//                System.out.println(properties[j].split(" ")[0] + "-" + properties[j + 1].split(" ")[0]);
+//            }
+//        }
+
+        Map<Integer,String> map = new HashMap<>();
+        map.put(1,"a");
+        map.put(2,"b");
+//        map.put(3,"c");
+
+        System.out.println(map.putIfAbsent(3,"d"));
+        System.out.println(map.putIfAbsent(3,"d"));
     }
 }
