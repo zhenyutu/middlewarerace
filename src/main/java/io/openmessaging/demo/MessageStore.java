@@ -156,7 +156,8 @@ public class MessageStore {
                 defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
             }
         }
-        logger.info(bucket+"-"+offset+"-"+new String(body)+"-"+new String(headerProperties));
+//        logger.info(bucket+"-"+offset+"-"+new String(body)+"-"+new String(headerProperties));
+        logger.info(bucket+"-"+offset+"-"+new String(body));
         return defaultBytesMessage;
     }
 
