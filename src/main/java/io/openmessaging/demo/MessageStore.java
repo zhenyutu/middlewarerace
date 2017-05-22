@@ -53,7 +53,7 @@ public class MessageStore {
         this.filePath = filePath;
     }
 
-    private void saveMessageToBuffer(String bucket, DefaultBytesMessage message, ByteBuffer byteBufferMessage) throws IOException {
+    private synchronized void saveMessageToBuffer(String bucket, DefaultBytesMessage message, ByteBuffer byteBufferMessage) throws IOException {
 
         StringBuffer str = new StringBuffer();
         for (String header : message.headers().keySet()) {
@@ -82,7 +82,7 @@ public class MessageStore {
         byteBufferMessage.put(message.getBody());
     }
 
-    private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
+    private synchronized MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
         long sizeNeed = SIZE * MSG_SIZE;
@@ -92,7 +92,7 @@ public class MessageStore {
         return new RandomAccessFile(filename, "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, position, sizeNeed);
     }
 
-    private MappedByteBuffer getPutMappedFile(String bucket) {
+    private synchronized MappedByteBuffer getPutMappedFile(String bucket) {
         MappedByteBuffer mappedByteBuffer = null;
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         File file = new File(filePath + "/" + bucket + count + ".txt");
@@ -137,7 +137,7 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    private Message pullMessageFromBuffer(ByteBuffer buffer,String bucket,int offset) {
+    private synchronized Message pullMessageFromBuffer(ByteBuffer buffer,String bucket,int offset) {
         byte[] headerProperties = new byte[buffer.getInt()];
         buffer.get(headerProperties);
         if (headerProperties.length == 0)
