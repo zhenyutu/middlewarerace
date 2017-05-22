@@ -160,7 +160,7 @@ public class MessageStore {
         return defaultBytesMessage;
     }
 
-    public Message pullMessage(String queue, String bucket) {
+    public synchronized Message pullMessage(String queue, String bucket) {
         MappedByteBuffer bucketbufer = null;
         HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
         if (offsetMap == null) {
