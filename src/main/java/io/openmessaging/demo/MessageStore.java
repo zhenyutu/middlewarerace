@@ -182,11 +182,6 @@ public class MessageStore {
                 bufferBucket = new HashMap<>();
                 bufferBuckets.put(bucket,bufferBucket);
             }
-            if (bufferBuckets.get(bucket)==null)
-                logger.info("bufferBuckets.get(bucket) is null");
-
-            if (messagePullBuckets.get(queue)==null)
-                logger.info("messagePullBuckets.get(queue) is null");
 
             if (bufferBucket.get(offset%SIZE) == null){
                 MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
