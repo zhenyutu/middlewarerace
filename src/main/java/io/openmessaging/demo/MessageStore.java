@@ -97,10 +97,6 @@ public class MessageStore {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         File file = new File(filePath + "/" + bucket + count + ".txt");
         try {
-            if (!file.exists()) {
-                file.createNewFile();
-                logger.info("create new file-"+filePath+ bucket + count + ".txt");
-            }
             mappedByteBuffer = new RandomAccessFile(file, "rw")
                     .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE * MSG_SIZE);
         } catch (IOException e) {
@@ -119,10 +115,6 @@ public class MessageStore {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
         int count = bucketCountsMap.getOrDefault(bucket, 0);
-//        if (count!=0 && count % (SIZE/100) == 0){
-//            logger.info("bytebuffer force -" +count+"-"+ bucket);
-//            messagePutBuckets.get(bucket).force();
-//        }
         if (count % SIZE == 0) {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
@@ -136,10 +128,6 @@ public class MessageStore {
         MappedByteBuffer mappedByteBuffer = null;
         int flag = (int) offset / SIZE;
         File file = new File(filePath + "/" + bucket + flag + ".txt");
-        if (!file.exists()){
-            logger.info(filePath + "/" + bucket + flag + ".txt" + " is not exit-"+bucket);
-//            return null;
-        }
         try {
             RandomAccessFile raf = new RandomAccessFile(file,"r");
             mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
@@ -165,7 +153,12 @@ public class MessageStore {
         if (str.length > 1) {
             String[] properties = str[1].split(" ");
             for (int j = 0; j < header.length; j = j + 2) {
-                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+                try{
+                    defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+                }catch (Exception e){
+                    logger.info(new String(headerProperties));
+                    e.printStackTrace();
+                }
             }
         }
 
