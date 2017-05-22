@@ -188,7 +188,7 @@ public class MessageStore {
                     if (messagePullBuckets.get(queue)==null)
                         logger.info("messagePullBuckets.get(queue) is null");
                     else
-                        logger.info("messagePullBuckets.get(queue) is null");
+                        logger.info("messagePullBuckets.get(queue) is not null");
                     logger.info("bufferBuckets is "+bufferBuckets.get(bucket).keySet().size());
                     logger.info("bufferBuckets is "+messagePullBuckets.get(bucket).keySet().size());
                 }
