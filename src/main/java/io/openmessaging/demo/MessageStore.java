@@ -184,6 +184,8 @@ public class MessageStore {
         }else {
             logger.info("BucketBuffer is null-"+bucket);
         }
+        if (message!=null)
+            logger.info(bucket+"-"+offset+"-"+new String(((DefaultBytesMessage)message).getBody()));
         return message;
     }
 
