@@ -95,7 +95,7 @@ public class MessageStore {
     private MappedByteBuffer getPutMappedFile(String bucket) {
         MappedByteBuffer mappedByteBuffer = null;
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
-        File file = new File(filePath + bucket + count + ".txt");
+        File file = new File(filePath + "/" + bucket + count + ".txt");
         try {
             if (!file.exists()) {
                 file.createNewFile();
