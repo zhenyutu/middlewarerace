@@ -99,6 +99,7 @@ public class MessageStore {
         try {
             if (!file.exists()) {
                 file.createNewFile();
+                logger.info("create new file-"+filePath+ bucket + count + ".txt");
             }
             mappedByteBuffer = new RandomAccessFile(file, "rw")
                     .getChannel().map(FileChannel.MapMode.READ_WRITE, 0, SIZE * MSG_SIZE);
@@ -136,7 +137,7 @@ public class MessageStore {
         int flag = (int) offset / SIZE;
         File file = new File(filePath + "/" + bucket + flag + ".txt");
         if (!file.exists()){
-            logger.info("file is not exit-"+bucket);
+            logger.info(filePath + "/" + bucket + flag + ".txt" + " is not exit-"+bucket);
 //            return null;
         }
         try {
