@@ -115,6 +115,10 @@ public class MessageStore {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
         int count = bucketCountsMap.getOrDefault(bucket, 0);
+        if (count!=0 && count % (SIZE/100) == 0){
+            logger.info("bytebuffer force -" +count+"-"+ bucket);
+            messagePutBuckets.get(bucket).force();
+        }
         if (count % SIZE == 0) {
             messagePutBuckets.put(bucket, getPutMappedFile(bucket));
         }
