@@ -152,13 +152,8 @@ public class MessageStore {
         }
         if (str.length > 1) {
             String[] properties = str[1].split(" ");
-            for (int j = 0; j < header.length; j = j + 2) {
-                try{
-                    defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
-                }catch (Exception e){
-                    logger.info(new String(headerProperties));
-                    e.printStackTrace();
-                }
+            for (int j = 0; j < properties.length; j = j + 2) {
+                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
             }
         }
 
