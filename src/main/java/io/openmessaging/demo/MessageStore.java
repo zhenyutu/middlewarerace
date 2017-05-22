@@ -172,26 +172,26 @@ public class MessageStore {
         int offset = offsetMap.getOrDefault(bucket, 0);
 
         if (offset % SIZE == 0) {
-            messagePullBuckets.putIfAbsent(queue,new HashMap<>());
-            bufferBuckets.putIfAbsent(bucket,new HashMap<>());
+            HashMap<String,MappedByteBuffer> messagePullBucket = messagePullBuckets.get(queue);
+            HashMap<Integer,MappedByteBuffer> bufferBucket = bufferBuckets.get(bucket);
+            if (messagePullBucket == null){
+                messagePullBucket = new HashMap<>();
+                messagePullBuckets.put(queue,messagePullBucket);
+            }
+            if (bufferBucket == null){
+                bufferBucket = new HashMap<>();
+                bufferBuckets.put(bucket,bufferBucket);
+            }
+            if (bufferBuckets.get(bucket)==null)
+                logger.info("bufferBuckets.get(bucket) is null");
 
-            if (bufferBuckets.get(bucket).get(offset%SIZE) == null){
-                try {
-                    MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
-                    bufferBuckets.get(bucket).put(offset%SIZE, tmp);
-                    messagePullBuckets.get(queue).put(bucket, (MappedByteBuffer) tmp.duplicate());
-                }catch (Exception e){
-                    if (bufferBuckets.get(bucket)==null)
-                        logger.info("bufferBuckets.get(bucket) is null");
-                    else
-                        logger.info("bufferBuckets.get(bucket) is not null");
-                    if (messagePullBuckets.get(queue)==null)
-                        logger.info("messagePullBuckets.get(queue) is null");
-                    else
-                        logger.info("messagePullBuckets.get(queue) is not null");
-                    logger.info("bufferBuckets is "+bufferBuckets.get(bucket).keySet().size());
-                    logger.info("bufferBuckets is "+messagePullBuckets.get(bucket).keySet().size());
-                }
+            if (messagePullBuckets.get(queue)==null)
+                logger.info("messagePullBuckets.get(queue) is null");
+
+            if (bufferBucket.get(offset%SIZE) == null){
+                MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
+                bufferBucket.put(offset%SIZE, tmp);
+                messagePullBucket.put(bucket, (MappedByteBuffer) tmp.duplicate());
             }
             else {
                 MappedByteBuffer tmp  = (MappedByteBuffer)bufferBuckets.get(bucket).get(offset%SIZE).duplicate();
