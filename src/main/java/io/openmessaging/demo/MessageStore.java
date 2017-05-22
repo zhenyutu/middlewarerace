@@ -108,22 +108,22 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
-//        if (!bucketObject.containsKey(bucket)) {
-//            bucketObject.put(bucket, new Object());
-//        }
-//        synchronized(bucketObject.get(bucket)){
-        if (!messagePutBuckets.containsKey(bucket)) {
-            messagePutBuckets.put(bucket, getPutMappedFile(bucket));
+    public void putMessage(String bucket, Message message) throws IOException {
+        if (!bucketObject.containsKey(bucket)) {
+            bucketObject.put(bucket, new Object());
         }
-        int count = bucketCountsMap.getOrDefault(bucket, 0);
-        if (count % SIZE == 0) {
-            messagePutBuckets.put(bucket, getPutMappedFile(bucket));
+        synchronized(bucketObject.get(bucket)){
+            if (!messagePutBuckets.containsKey(bucket)) {
+                messagePutBuckets.put(bucket, getPutMappedFile(bucket));
+            }
+            int count = bucketCountsMap.getOrDefault(bucket, 0);
+            if (count % SIZE == 0) {
+                messagePutBuckets.put(bucket, getPutMappedFile(bucket));
+            }
+            MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
+            saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
+            bucketCountsMap.put(bucket, ++count);
         }
-        MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
-        saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
-        bucketCountsMap.put(bucket, ++count);
-//        }
     }
 
     private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
