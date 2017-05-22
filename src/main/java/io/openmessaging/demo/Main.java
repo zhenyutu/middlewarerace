@@ -30,6 +30,7 @@ public class Main {
 //        }
 
         String headerProperties = "HEADER_KEY h2c2bd3ib4 91y evq5vue vmy 8nrevr6 q6z e6512ic zxx e7a9zag Topic TOPIC_48 ,hbk rop8gj9 PRO_OFFSET PRODUCER0_0 4lq 9saulza rxe pnhmtui ";
+        System.out.println(headerProperties.getBytes().length);
         String[] str = headerProperties.split(",");
         String[] header = str[0].split(" ");
         System.out.println(Arrays.toString(header));
