@@ -173,15 +173,17 @@ public class MessageStore {
 
         if (offset % SIZE == 0) {
             messagePullBuckets.putIfAbsent(queue,new HashMap<>());
-            bucketbufer = messagePullBuckets.get(queue).get(bucket);
-
-            if (bucketbufer != null)
-                clean(bucketbufer);
             bufferBuckets.putIfAbsent(bucket,new HashMap<>());
+
             if (bufferBuckets.get(bucket).get(offset%SIZE) == null){
-                MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
-                bufferBuckets.get(bucket).put(offset%SIZE, tmp);
-                messagePullBuckets.get(queue).put(bucket, (MappedByteBuffer) tmp.duplicate());
+                try {
+                    MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
+                    bufferBuckets.get(bucket).put(offset%SIZE, tmp);
+                    messagePullBuckets.get(queue).put(bucket, (MappedByteBuffer) tmp.duplicate());
+                }catch (Exception e){
+                    logger.info("bufferBuckets"+bufferBuckets.get(bucket).keySet().size());
+                    logger.info("bufferBuckets"+messagePullBuckets.get(bucket).keySet().size());
+                }
             }
             else {
                 MappedByteBuffer tmp  = (MappedByteBuffer)bufferBuckets.get(bucket).get(offset%SIZE).duplicate();
