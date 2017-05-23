@@ -112,11 +112,11 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    public void putMessage(String bucket, Message message) throws IOException {
-        if (!bucketObject.containsKey(bucket)) {
-            bucketObject.put(bucket, new Object());
-        }
-        synchronized(bucketObject.get(bucket)){
+    public synchronized void putMessage(String bucket, Message message) throws IOException {
+//        if (!bucketObject.containsKey(bucket)) {
+//            bucketObject.put(bucket, new Object());
+//        }
+//        synchronized(bucketObject.get(bucket)){
             if (!messagePutBuckets.containsKey(bucket)) {
                 messagePutBuckets.put(bucket, getPutMappedFile(bucket));
             }
@@ -127,7 +127,7 @@ public class MessageStore {
             MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
-        }
+//        }
     }
 
     private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
