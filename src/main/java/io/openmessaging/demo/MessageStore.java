@@ -108,7 +108,7 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
+    public void putMessage(String bucket, Message message) throws IOException {
         if (!bucketObject.containsKey(bucket)) {
             bucketObject.put(bucket, new Object());
         }
