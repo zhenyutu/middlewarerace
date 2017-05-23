@@ -27,7 +27,7 @@ import java.util.Map;
 public class MessageStore {
     private static final Logger logger = LoggerFactory.getLogger(DefaultPullConsumer.class);
 
-    private static final int SIZE = 1000000;
+    private static final int SIZE = 1500000;
     private static final int MSG_SIZE = 100;
 
     private static final MessageStore INSTANCE = new MessageStore();
@@ -238,6 +238,9 @@ public class MessageStore {
                 MappedByteBuffer tmp  = (MappedByteBuffer)bufferBuckets.get(bucket).get(offset%SIZE).duplicate();
                 messagePullBuckets.get(queue).put(bucket,tmp);
             }
+        }
+        if (messagePullBuckets.get(queue) == null){
+            logger.info("bucketbufer is null - "+ offset + "-queue-" + queue + "-bucket-"+bucket);
         }
         bucketbufer = messagePullBuckets.get(queue).get(bucket);
 
