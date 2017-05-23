@@ -15,6 +15,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Message操作的类.
@@ -48,7 +49,7 @@ public class MessageStore {
 
     private Map<String, Integer> bucketCountsMap = new HashMap<>(100);
 
-    private Map<String, Object> bucketObject = new HashMap<>(100);
+    private Map<String, ReentrantLock> bucketLock = new HashMap<>(100);
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
@@ -113,10 +114,11 @@ public class MessageStore {
     }
 
     public synchronized void putMessage(String bucket, Message message) throws IOException {
-//        if (!bucketObject.containsKey(bucket)) {
-//            bucketObject.put(bucket, new Object());
-//        }
-//        synchronized(bucketObject.get(bucket)){
+        if (!bucketLock.containsKey(bucket)) {
+            bucketLock.put(bucket, new ReentrantLock());
+        }
+        bucketLock.get(bucket).lock();
+        try {
             if (!messagePutBuckets.containsKey(bucket)) {
                 messagePutBuckets.put(bucket, getPutMappedFile(bucket));
             }
@@ -127,14 +129,18 @@ public class MessageStore {
             MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
-//        }
+        }finally {
+            bucketLock.get(bucket).unlock();
+        }
+
     }
 
     private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
-        if (!bucketObject.containsKey(bucket)) {
-            bucketObject.put(bucket, new Object());
+        if (!bucketLock.containsKey(bucket)) {
+            bucketLock.put(bucket, new ReentrantLock());
         }
-        synchronized(bucketObject.get(bucket)) {
+        bucketLock.get(bucket).lock();
+        try {
             MappedByteBuffer mappedByteBuffer = null;
             int flag = (int) offset / SIZE;
             File file = new File(filePath + "/" + bucket + flag + ".txt");
@@ -145,6 +151,8 @@ public class MessageStore {
                 e.printStackTrace();
             }
             return mappedByteBuffer;
+        }finally {
+            bucketLock.get(bucket).unlock();
         }
     }
 
