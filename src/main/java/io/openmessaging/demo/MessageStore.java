@@ -113,11 +113,15 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
+    public void putMessage(String bucket, Message message) throws IOException {
+        ReentrantLock lock;
         if (!bucketLock.containsKey(bucket)) {
-            bucketLock.put(bucket, new ReentrantLock());
+            lock = new ReentrantLock();
+            bucketLock.put(bucket, lock);
+        }else {
+            lock = bucketLock.get(bucket);
         }
-        bucketLock.get(bucket).lock();
+        lock.lock();
         try {
             if (!messagePutBuckets.containsKey(bucket)) {
                 messagePutBuckets.put(bucket, getPutMappedFile(bucket));
@@ -130,16 +134,20 @@ public class MessageStore {
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
         }finally {
-            bucketLock.get(bucket).unlock();
+            lock.unlock();
         }
 
     }
 
     private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
+        ReentrantLock lock;
         if (!bucketLock.containsKey(bucket)) {
-            bucketLock.put(bucket, new ReentrantLock());
+            lock = new ReentrantLock();
+            bucketLock.put(bucket, lock);
+        }else {
+            lock = bucketLock.get(bucket);
         }
-        bucketLock.get(bucket).lock();
+        lock.lock();
         try {
             MappedByteBuffer mappedByteBuffer = null;
             int flag = (int) offset / SIZE;
@@ -152,7 +160,7 @@ public class MessageStore {
             }
             return mappedByteBuffer;
         }finally {
-            bucketLock.get(bucket).unlock();
+            lock.unlock();
         }
     }
 
