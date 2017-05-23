@@ -153,52 +153,52 @@ public class MessageStore {
         buffer.get(body);
         DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
 
-//        String str = new String(headerProperties);
-//        int index = str.indexOf(",");
-//        String header = str.substring(0,index);
-//        String properties = str.substring(index+1,str.length());
-//        String key;
-//        String value;
-//        while (true){
-//            index = header.indexOf(" ");
-//            if (index<0)
-//                break;
-//            key = header.substring(0,index);
-//            header = header.substring(index+1);
-//            index = header.indexOf(" ");
-//            if (index<0)
-//                break;
-//            value = header.substring(0,index);
-//            header = header.substring(index+1);
-//            defaultBytesMessage.putHeaders(key,value);
-//        }
-//        if (properties.length()>1){
-//            while (true){
-//                index = properties.indexOf(" ");
-//                if (index<0)
-//                    break;
-//                key = properties.substring(0,index);
-//                properties = properties.substring(index+1);
-//                index = properties.indexOf(" ");
-//                if (index<0)
-//                    break;
-//                value = properties.substring(0,index);
-//                properties = properties.substring(index+1);
-//                defaultBytesMessage.putProperties(key, value);
-//            }
-//        }
-
-        String[] str = new String(headerProperties).split(",");
-        String[] header = str[0].split(" ");
-        for (int j = 0; j < header.length; j = j + 2) {
-            defaultBytesMessage.putHeaders(header[j].split(" ")[0], header[j + 1].split(" ")[0]);
+        String str = new String(headerProperties);
+        int index = str.indexOf(",");
+        String header = str.substring(0,index);
+        String properties = str.substring(index+1,str.length());
+        String key;
+        String value;
+        while (true){
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            key = header.substring(0,index);
+            header = header.substring(index+1);
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            value = header.substring(0,index);
+            header = header.substring(index+1);
+            defaultBytesMessage.putHeaders(key,value);
         }
-        if (str.length > 1) {
-            String[] properties = str[1].split(" ");
-            for (int j = 0; j < properties.length; j = j + 2) {
-                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+        if (properties.length()>1){
+            while (true){
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                key = properties.substring(0,index);
+                properties = properties.substring(index+1);
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                value = properties.substring(0,index);
+                properties = properties.substring(index+1);
+                defaultBytesMessage.putProperties(key, value);
             }
         }
+
+//        String[] str = new String(headerProperties).split(",");
+//        String[] header = str[0].split(" ");
+//        for (int j = 0; j < header.length; j = j + 2) {
+//            defaultBytesMessage.putHeaders(header[j].split(" ")[0], header[j + 1].split(" ")[0]);
+//        }
+//        if (str.length > 1) {
+//            String[] properties = str[1].split(" ");
+//            for (int j = 0; j < properties.length; j = j + 2) {
+//                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+//            }
+//        }
 
         return defaultBytesMessage;
     }
@@ -215,6 +215,10 @@ public class MessageStore {
         if (offset % SIZE == 0) {
             HashMap<String,MappedByteBuffer> messagePullBucket = messagePullBuckets.get(queue);
             HashMap<Integer,MappedByteBuffer> bufferBucket = bufferBuckets.get(bucket);
+
+            bucketbufer = messagePullBuckets.get(queue).get(bucket);
+            if (bucketbufer != null)
+                clean(bucketbufer);
             if (messagePullBucket == null){
                 messagePullBucket = new HashMap<>(100);
                 messagePullBuckets.put(queue,messagePullBucket);
