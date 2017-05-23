@@ -144,7 +144,7 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    private Message pullMessageFromBuffer(ByteBuffer buffer,String bucket,int offset) {
+    private Message pullMessageFromBuffer(ByteBuffer buffer) {
         byte[] headerProperties = new byte[buffer.getInt()];
         buffer.get(headerProperties);
         if (headerProperties.length == 0)
@@ -188,6 +188,18 @@ public class MessageStore {
             }
         }
 
+//        String[] str = new String(headerProperties).split(",");
+//        String[] header = str[0].split(" ");
+//        for (int j = 0; j < header.length; j = j + 2) {
+//            defaultBytesMessage.putHeaders(header[j].split(" ")[0], header[j + 1].split(" ")[0]);
+//        }
+//        if (str.length > 1) {
+//            String[] properties = str[1].split(" ");
+//            for (int j = 0; j < properties.length; j = j + 2) {
+//                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+//            }
+//        }
+
         return defaultBytesMessage;
     }
 
@@ -226,14 +238,12 @@ public class MessageStore {
 
         Message message = null;
         if (bucketbufer != null) {
-            message = pullMessageFromBuffer(bucketbufer,bucket,offset);
+            message = pullMessageFromBuffer(bucketbufer);
             offsetMap.put(bucket, ++offset);
         }else {
             logger.info("BucketBuffer is null-"+bucket);
         }
 
-        if (message == null)
-            logger.info("message is null");
         return message;
     }
 
