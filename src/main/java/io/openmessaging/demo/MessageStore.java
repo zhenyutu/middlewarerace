@@ -154,7 +154,6 @@ public class MessageStore {
         DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
 
         String str = new String(headerProperties);
-        logger.info(bucket+"-"+offset+"-"+str);
         int index = str.indexOf(",");
         String header = str.substring(0,index);
         String properties = str.substring(index+1,str.length());
