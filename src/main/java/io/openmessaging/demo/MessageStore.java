@@ -37,19 +37,19 @@ public class MessageStore {
         return INSTANCE;
     }
 
-    private Map<String, MappedByteBuffer> messagePutBuckets = new HashMap<>();
+    private Map<String, MappedByteBuffer> messagePutBuckets = new HashMap<>(100);
 
-    private Map<String, HashMap<Integer, MappedByteBuffer>> bufferBuckets = new HashMap<>();
+    private Map<String, HashMap<Integer, MappedByteBuffer>> bufferBuckets = new HashMap<>(100);
 
-    private Map<String, HashMap<String, MappedByteBuffer>> messagePullBuckets = new HashMap<>();
+    private Map<String, HashMap<String, MappedByteBuffer>> messagePullBuckets = new HashMap<>(20);
 
-    private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
+    private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>(20);
 
     private String filePath;
 
-    private Map<String, Integer> bucketCountsMap = new HashMap<>();
+    private Map<String, Integer> bucketCountsMap = new HashMap<>(100);
 
-    private Map<String, Object> bucketObject = new HashMap<>();
+    private Map<String, Object> bucketObject = new HashMap<>(100);
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
@@ -166,7 +166,7 @@ public class MessageStore {
         MappedByteBuffer bucketbufer = null;
         HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
         if (offsetMap == null) {
-            offsetMap = new HashMap<>();
+            offsetMap = new HashMap<>(100);
             queueOffsets.put(queue, offsetMap);
         }
         int offset = offsetMap.getOrDefault(bucket, 0);
@@ -175,7 +175,7 @@ public class MessageStore {
             HashMap<String,MappedByteBuffer> messagePullBucket = messagePullBuckets.get(queue);
             HashMap<Integer,MappedByteBuffer> bufferBucket = bufferBuckets.get(bucket);
             if (messagePullBucket == null){
-                messagePullBucket = new HashMap<>();
+                messagePullBucket = new HashMap<>(100);
                 messagePullBuckets.put(queue,messagePullBucket);
             }
             if (bufferBucket == null){
