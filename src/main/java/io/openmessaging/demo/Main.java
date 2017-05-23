@@ -46,12 +46,50 @@ public class Main {
 //            }
 //        }
 
-        Map<Integer,String> map = new HashMap<>();
-        map.put(1,"a");
-        map.put(2,"b");
-//        map.put(3,"c");
+        String headerProperties = "HEADER_KEY h2c2bd3ib4 91y evq5vue vmy 8nrevr6 q6z e6512ic zxx e7a9zag Topic TOPIC_48 ,hbk rop8gj9 PRO_OFFSET PRODUCER0_0 4lq 9saulza rxe pnhmtui ";
+        System.out.println(headerProperties.getBytes().length);
+        int index = headerProperties.indexOf(",");
+        String header = headerProperties.substring(0,index);
+        String properties = headerProperties.substring(index+1,headerProperties.length());
+        String key = null;
+        String value = null;
+        while (true){
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            key = header.substring(0,index);
+            header = header.substring(index+1);
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            value = header.substring(0,index);
+            header = header.substring(index+1);
 
-        System.out.println(map.putIfAbsent(3,"d"));
-        System.out.println(map.putIfAbsent(3,"d"));
+            System.out.println(key + "-" + value);
+        }
+        if (properties.length()>1){
+            while (true){
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                key = properties.substring(0,index);
+                properties = properties.substring(index+1);
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                value = properties.substring(0,index);
+                properties = properties.substring(index+1);
+
+                System.out.println(key + "-" + value);
+            }
+        }
+
+//        Map<Integer,String> map = new HashMap<>();
+//        map.put(1,"a");
+//        map.put(2,"b");
+////        map.put(3,"c");
+//
+//        System.out.println(map.putIfAbsent(3,"d"));
+//        System.out.println(map.putIfAbsent(3,"d"));
     }
 }

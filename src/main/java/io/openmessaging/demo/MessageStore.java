@@ -57,16 +57,20 @@ public class MessageStore {
 
     private void saveMessageToBuffer(String bucket, DefaultBytesMessage message, ByteBuffer byteBufferMessage) throws IOException {
 
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder(100);
         for (String header : message.headers().keySet()) {
-            str.append(header + " ");
-            str.append(message.headers().getString(header) + " ");
+            str.append(header);
+            str.append(" ");
+            str.append(message.headers().getString(header));
+            str.append(" ");
         }
         str.append(",");
         if (message.properties() != null) {
             for (String properties : message.properties().keySet()) {
-                str.append(properties + " ");
-                str.append(message.properties().getString(properties) + " ");
+                str.append(properties);
+                str.append(" ");
+                str.append(message.properties().getString(properties));
+                str.append(" ");
             }
         }
 
@@ -148,15 +152,39 @@ public class MessageStore {
         byte[] body = new byte[buffer.getInt()];
         buffer.get(body);
         DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(body);
-        String[] str = new String(headerProperties).split(",");
-        String[] header = str[0].split(" ");
-        for (int j = 0; j < header.length; j = j + 2) {
-            defaultBytesMessage.putHeaders(header[j].split(" ")[0], header[j + 1].split(" ")[0]);
+
+        String str = new String(headerProperties);
+        int index = str.indexOf(",");
+        String header = str.substring(0,index);
+        String properties = str.substring(index+1,str.length());
+        String key;
+        String value;
+        while (true){
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            key = header.substring(0,index);
+            header = header.substring(index+1);
+            index = header.indexOf(" ");
+            if (index<0)
+                break;
+            value = header.substring(0,index);
+            header = header.substring(index+1);
+            defaultBytesMessage.putHeaders(key,value);
         }
-        if (str.length > 1) {
-            String[] properties = str[1].split(" ");
-            for (int j = 0; j < properties.length; j = j + 2) {
-                defaultBytesMessage.putProperties(properties[j].split(" ")[0], properties[j + 1].split(" ")[0]);
+        if (properties.length()>1){
+            while (true){
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                key = properties.substring(0,index);
+                properties = properties.substring(index+1);
+                index = properties.indexOf(" ");
+                if (index<0)
+                    break;
+                value = properties.substring(0,index);
+                properties = properties.substring(index+1);
+                defaultBytesMessage.putProperties(key, value);
             }
         }
 
