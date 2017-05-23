@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
@@ -27,7 +26,7 @@ import java.util.Map;
 public class MessageStore {
     private static final Logger logger = LoggerFactory.getLogger(DefaultPullConsumer.class);
 
-    private static final int SIZE = 1500000;
+    private static final int SIZE = 1000000;
     private static final int MSG_SIZE = 100;
 
     private static final MessageStore INSTANCE = new MessageStore();
@@ -225,10 +224,6 @@ public class MessageStore {
                 bufferBuckets.put(bucket,bufferBucket);
             }
 
-//            bucketbufer = messagePullBuckets.get(queue).get(bucket);
-//            if (bucketbufer != null)
-//                clean(bucketbufer);
-
             if (bufferBucket.get(offset%SIZE) == null){
                 MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
                 bufferBucket.put(offset%SIZE, tmp);
@@ -238,9 +233,6 @@ public class MessageStore {
                 MappedByteBuffer tmp  = (MappedByteBuffer)bufferBuckets.get(bucket).get(offset%SIZE).duplicate();
                 messagePullBuckets.get(queue).put(bucket,tmp);
             }
-        }
-        if (messagePullBuckets.get(queue) == null){
-            logger.info("bucketbufer is null - "+ offset + "-queue-" + queue + "-bucket-"+bucket);
         }
         bucketbufer = messagePullBuckets.get(queue).get(bucket);
 
