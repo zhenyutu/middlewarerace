@@ -87,6 +87,7 @@ public class MessageStore {
     private MappedByteBuffer expandMappedFile(String bucket, int position, int msgLen) throws IOException {
         int count = bucketCountsMap.getOrDefault(bucket, 0) / SIZE;
         String filename = filePath + bucket + count + ".txt";
+        logger.info("file is expanded - "+filename);
         long sizeNeed = SIZE * MSG_SIZE;
         if (sizeNeed < msgLen) {
             sizeNeed = msgLen;
