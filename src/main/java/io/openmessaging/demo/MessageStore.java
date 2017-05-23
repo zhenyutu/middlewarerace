@@ -216,9 +216,6 @@ public class MessageStore {
             HashMap<String,MappedByteBuffer> messagePullBucket = messagePullBuckets.get(queue);
             HashMap<Integer,MappedByteBuffer> bufferBucket = bufferBuckets.get(bucket);
 
-            bucketbufer = messagePullBuckets.get(queue).get(bucket);
-            if (bucketbufer != null)
-                clean(bucketbufer);
             if (messagePullBucket == null){
                 messagePullBucket = new HashMap<>(100);
                 messagePullBuckets.put(queue,messagePullBucket);
@@ -227,6 +224,10 @@ public class MessageStore {
                 bufferBucket = new HashMap<>();
                 bufferBuckets.put(bucket,bufferBucket);
             }
+
+            bucketbufer = messagePullBuckets.get(queue).get(bucket);
+            if (bucketbufer != null)
+                clean(bucketbufer);
 
             if (bufferBucket.get(offset%SIZE) == null){
                 MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
