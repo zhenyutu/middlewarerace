@@ -225,9 +225,9 @@ public class MessageStore {
                 bufferBuckets.put(bucket,bufferBucket);
             }
 
-            bucketbufer = messagePullBuckets.get(queue).get(bucket);
-            if (bucketbufer != null)
-                clean(bucketbufer);
+//            bucketbufer = messagePullBuckets.get(queue).get(bucket);
+//            if (bucketbufer != null)
+//                clean(bucketbufer);
 
             if (bufferBucket.get(offset%SIZE) == null){
                 MappedByteBuffer tmp = getPullMappedFile(bucket, offset);
