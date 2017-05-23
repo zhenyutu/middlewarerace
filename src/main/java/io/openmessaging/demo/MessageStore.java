@@ -130,17 +130,22 @@ public class MessageStore {
         }
     }
 
-    private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
-        MappedByteBuffer mappedByteBuffer = null;
-        int flag = (int) offset / SIZE;
-        File file = new File(filePath + "/" + bucket + flag + ".txt");
-        try {
-            RandomAccessFile raf = new RandomAccessFile(file,"r");
-            mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-        } catch (IOException e) {
-            e.printStackTrace();
+    private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
+        if (!bucketObject.containsKey(bucket)) {
+            bucketObject.put(bucket, new Object());
         }
-        return mappedByteBuffer;
+        synchronized(bucketObject.get(bucket)) {
+            MappedByteBuffer mappedByteBuffer = null;
+            int flag = (int) offset / SIZE;
+            File file = new File(filePath + "/" + bucket + flag + ".txt");
+            try {
+                RandomAccessFile raf = new RandomAccessFile(file, "r");
+                mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return mappedByteBuffer;
+        }
     }
 
     private Message pullMessageFromBuffer(ByteBuffer buffer) {
