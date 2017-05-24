@@ -7,12 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MessageStore {
     private static final Logger logger = LoggerFactory.getLogger(DefaultPullConsumer.class);
 
-    private static final int SIZE = 1000000;
+    private static final int SIZE = 1500000;
     private static final int MSG_SIZE = 100;
 
     private static final MessageStore INSTANCE = new MessageStore();
