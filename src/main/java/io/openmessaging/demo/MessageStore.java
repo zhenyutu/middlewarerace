@@ -113,16 +113,16 @@ public class MessageStore {
         return mappedByteBuffer;
     }
 
-    public void putMessage(String bucket, Message message) throws IOException {
-        ReentrantLock lock;
-        if (!bucketLock.containsKey(bucket)) {
-            lock = new ReentrantLock();
-            bucketLock.put(bucket, lock);
-        }else {
-            lock = bucketLock.get(bucket);
-        }
-        lock.lock();
-        try {
+    public synchronized void putMessage(String bucket, Message message) throws IOException {
+//        ReentrantLock lock;
+//        if (!bucketLock.containsKey(bucket)) {
+//            lock = new ReentrantLock();
+//            bucketLock.put(bucket, lock);
+//        }else {
+//            lock = bucketLock.get(bucket);
+//        }
+//        lock.lock();
+//        try {
             if (!messagePutBuckets.containsKey(bucket)) {
                 messagePutBuckets.put(bucket, getPutMappedFile(bucket));
             }
@@ -133,22 +133,22 @@ public class MessageStore {
             MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
-        }finally {
-            lock.unlock();
-        }
+//        }finally {
+//            lock.unlock();
+//        }
 
     }
 
-    private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
-        ReentrantLock lock;
-        if (!bucketLock.containsKey(bucket)) {
-            lock = new ReentrantLock();
-            bucketLock.put(bucket, lock);
-        }else {
-            lock = bucketLock.get(bucket);
-        }
-        lock.lock();
-        try {
+    private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
+//        ReentrantLock lock;
+//        if (!bucketLock.containsKey(bucket)) {
+//            lock = new ReentrantLock();
+//            bucketLock.put(bucket, lock);
+//        }else {
+//            lock = bucketLock.get(bucket);
+//        }
+//        lock.lock();
+//        try {
             MappedByteBuffer mappedByteBuffer = null;
             int flag = (int) offset / SIZE;
             File file = new File(filePath + "/" + bucket + flag + ".txt");
@@ -159,9 +159,9 @@ public class MessageStore {
                 e.printStackTrace();
             }
             return mappedByteBuffer;
-        }finally {
-            lock.unlock();
-        }
+//        }finally {
+//            lock.unlock();
+//        }
     }
 
     private Message pullMessageFromBuffer(ByteBuffer buffer) {
