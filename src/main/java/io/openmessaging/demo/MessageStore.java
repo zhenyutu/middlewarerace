@@ -114,15 +114,15 @@ public class MessageStore {
     }
 
     public synchronized void putMessage(String bucket, Message message) throws IOException {
-//        ReentrantLock lock;
-//        if (!bucketLock.containsKey(bucket)) {
-//            lock = new ReentrantLock();
-//            bucketLock.put(bucket, lock);
-//        }else {
-//            lock = bucketLock.get(bucket);
-//        }
-//        lock.lock();
-//        try {
+        ReentrantLock lock;
+        if (!bucketLock.containsKey(bucket)) {
+            lock = new ReentrantLock();
+            bucketLock.put(bucket, lock);
+        }else {
+            lock = bucketLock.get(bucket);
+        }
+        lock.lock();
+        try {
             if (!messagePutBuckets.containsKey(bucket)) {
                 messagePutBuckets.put(bucket, getPutMappedFile(bucket));
             }
@@ -133,35 +133,23 @@ public class MessageStore {
             MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
-//        }finally {
-//            lock.unlock();
-//        }
+        }finally {
+            lock.unlock();
+        }
 
     }
 
     private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
-//        ReentrantLock lock;
-//        if (!bucketLock.containsKey(bucket)) {
-//            lock = new ReentrantLock();
-//            bucketLock.put(bucket, lock);
-//        }else {
-//            lock = bucketLock.get(bucket);
-//        }
-//        lock.lock();
-//        try {
-            MappedByteBuffer mappedByteBuffer = null;
-            int flag = (int) offset / SIZE;
-            File file = new File(filePath + "/" + bucket + flag + ".txt");
-            try {
-                RandomAccessFile raf = new RandomAccessFile(file, "r");
-                mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return mappedByteBuffer;
-//        }finally {
-//            lock.unlock();
-//        }
+        MappedByteBuffer mappedByteBuffer = null;
+        int flag = (int) offset / SIZE;
+        File file = new File(filePath + "/" + bucket + flag + ".txt");
+        try {
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+            mappedByteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return mappedByteBuffer;
     }
 
     private Message pullMessageFromBuffer(ByteBuffer buffer) {
