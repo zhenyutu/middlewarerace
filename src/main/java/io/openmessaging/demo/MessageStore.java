@@ -113,7 +113,15 @@ public class MessageStore {
 
     public void putMessage(String bucket, Message message) throws IOException {
 
-        synchronized (this){
+        ReentrantLock lock;
+        if (!bucketLock.containsKey(bucket)) {
+            lock = new ReentrantLock();
+            bucketLock.put(bucket, lock);
+        }else {
+            lock = bucketLock.get(bucket);
+        }
+        lock.lock();
+        try {
             int count = bucketCountsMap.getOrDefault(bucket, 0);
 
             if (count % SIZE == 0) {
@@ -124,6 +132,8 @@ public class MessageStore {
 
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
+        }finally {
+            lock.unlock();
         }
     }
 
