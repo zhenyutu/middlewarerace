@@ -12,6 +12,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -34,7 +35,7 @@ public class MessageStore {
         return INSTANCE;
     }
 
-    private Map<String, MappedByteBuffer> messagePutBuckets = new HashMap<>(100);
+    private Map<String, MappedByteBuffer> messagePutBuckets = new ConcurrentHashMap<>(100);
 
     private Map<String, HashMap<Integer, MappedByteBuffer>> bufferBuckets = new HashMap<>(100);
 
@@ -46,7 +47,7 @@ public class MessageStore {
 
     private Map<String, Integer> bucketCountsMap = new HashMap<>(100);
 
-    private Map<String, ReentrantLock> bucketLock = new HashMap<>(100);
+    private Map<String, ReentrantLock> bucketLock = new ConcurrentHashMap<>(100);
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
@@ -111,29 +112,19 @@ public class MessageStore {
     }
 
     public void putMessage(String bucket, Message message) throws IOException {
-        ReentrantLock lock;
-        if (!bucketLock.containsKey(bucket)) {
-            lock = new ReentrantLock();
-            bucketLock.put(bucket, lock);
-        }else {
-            lock = bucketLock.get(bucket);
-        }
-        lock.lock();
-        try {
-            if (!messagePutBuckets.containsKey(bucket)) {
-                messagePutBuckets.put(bucket, getPutMappedFile(bucket));
-            }
+
+        synchronized (this){
             int count = bucketCountsMap.getOrDefault(bucket, 0);
+
             if (count % SIZE == 0) {
-                messagePutBuckets.put(bucket, getPutMappedFile(bucket));
+                MappedByteBuffer mappedByteBuffer = getPutMappedFile(bucket);
+                messagePutBuckets.put(bucket, mappedByteBuffer);
             }
             MappedByteBuffer bucketBuffer = messagePutBuckets.get(bucket);
+
             saveMessageToBuffer(bucket, (DefaultBytesMessage) message, bucketBuffer);
             bucketCountsMap.put(bucket, ++count);
-        }finally {
-            lock.unlock();
         }
-
     }
 
     private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
