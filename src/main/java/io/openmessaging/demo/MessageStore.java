@@ -137,7 +137,7 @@ public class MessageStore {
         }
     }
 
-    private synchronized MappedByteBuffer getPullMappedFile(String bucket, long offset) {
+    private MappedByteBuffer getPullMappedFile(String bucket, long offset) {
         MappedByteBuffer mappedByteBuffer = null;
         int flag = (int) offset / SIZE;
         File file = new File(filePath + "/" + bucket + flag + ".txt");
