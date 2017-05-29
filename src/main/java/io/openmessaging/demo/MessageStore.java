@@ -73,12 +73,12 @@ public class MessageStore {
         }
 
         byte[] headerProperties = str.toString().getBytes();
-        int leftLength = byteBufferMessage.capacity() - byteBufferMessage.position();
-        int msgLen = 4 + headerProperties.length + 4 + message.getBody().length;
-        if (msgLen > leftLength) {
-            byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position(), msgLen);
-            messagePutBuckets.put(bucket, (MappedByteBuffer) byteBufferMessage);
-        }
+//        int leftLength = byteBufferMessage.capacity() - byteBufferMessage.position();
+//        int msgLen = 4 + headerProperties.length + 4 + message.getBody().length;
+//        if (msgLen > leftLength) {
+//            byteBufferMessage = expandMappedFile(bucket, byteBufferMessage.position(), msgLen);
+//            messagePutBuckets.put(bucket, (MappedByteBuffer) byteBufferMessage);
+//        }
 
         byteBufferMessage.putInt(headerProperties.length);
         byteBufferMessage.put(headerProperties);
